@@ -23,6 +23,10 @@ export default function BrowseTasks({ onToast }: Props) {
   const [maxReward, setMaxReward] = useState("");
   const [sort, setSort] = useState("Newest");
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
@@ -30,6 +34,7 @@ export default function BrowseTasks({ onToast }: Props) {
   }, []);
 
   const filtered = useMemo(() => {
+    setPage(1);
     let items = browseTasks.filter((task) => {
       const haystack = `${task.title} ${task.description} ${task.tags.join(" ")}`.toLowerCase();
       if (search && !haystack.includes(search.toLowerCase())) return false;
@@ -45,7 +50,10 @@ export default function BrowseTasks({ onToast }: Props) {
     if (sort === "Deadline Soon") items = [...items].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     if (sort === "Newest") items = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return items;
-  }, [browseTasks, category, search, sort]);
+  }, [browseTasks, category, difficulty, search, sort, minReward, maxReward]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleAccept = async (id: string) => {
     setLoadingId(id);
@@ -157,11 +165,22 @@ export default function BrowseTasks({ onToast }: Props) {
           <p className="text-slate-500 mt-2 max-w-md">Try another category or keyword. Once contract writes are added, this same UI can be backed by on-chain task discovery.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((task) => (
-            <TaskCard key={task.id} task={task} onAccept={handleAccept} loading={loadingId === task.id} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {paginated.map((task) => (
+              <TaskCard key={task.id} task={task} onAccept={handleAccept} loading={loadingId === task.id} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                className="outline-btn text-slate-300 text-sm px-4 py-2 rounded-xl disabled:opacity-40 cursor-pointer">← Prev</button>
+              <span className="text-slate-500 text-sm">{page} / {totalPages}</span>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="outline-btn text-slate-300 text-sm px-4 py-2 rounded-xl disabled:opacity-40 cursor-pointer">Next →</button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
