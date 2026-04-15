@@ -1,0 +1,58 @@
+import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
+import "./globals.css";
+import Providers from "@/components/Providers";
+import Navbar from "@/components/Navbar";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+
+export const metadata: Metadata = {
+  title: "CeloTasks — Micro tasks. Instant pay. Onchain reputation.",
+  description: "Complete small tasks and get paid instantly on Celo using MiniPay. Build your reputation. Earn on your terms.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CeloTasks",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png",   sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon-32.png",
+  },
+  openGraph: {
+    title: "CeloTasks",
+    description: "Micro tasks. Instant pay. Onchain reputation.",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0b0f14",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${geist.variable} h-full`}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="CeloTasks" />
+      </head>
+      <body className="min-h-full antialiased" style={{ background: "#0b0f14" }}>
+        <Providers>
+          <Navbar />
+          <main>{children}</main>
+        </Providers>
+      </body>
+    </html>
+  );
+}

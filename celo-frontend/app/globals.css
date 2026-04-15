@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0f14;
+  --card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --gradient: linear-gradient(135deg, #14b8a6, #22c55e, #eab308);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Gradient utilities ── */
+.gradient-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-btn {
+  background: var(--gradient);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease;
+}
+.gradient-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 28px rgba(20, 184, 166, 0.35), 0 4px 16px rgba(0,0,0,0.3);
+}
+.gradient-btn:active { transform: scale(0.97); }
+
+/* ── Glass card ── */
+.glass-card {
+  background: var(--card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+/* ── Outline button ── */
+.outline-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.outline-btn:hover {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: rgba(20, 184, 166, 0.06);
+  transform: scale(1.02);
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.fade-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
+.fade-up-delay-2 { animation-delay: 0.22s; opacity: 0; }
+.fade-up-delay-3 { animation-delay: 0.34s; opacity: 0; }
+.fade-up-delay-4 { animation-delay: 0.46s; opacity: 0; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+
+/* ── Glow pulse ── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px rgba(20, 184, 166, 0.4); }
+  50%       { box-shadow: 0 0 18px rgba(20, 184, 166, 0.7); }
+}
+.glow-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* ── Skeleton shimmer ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
+}
+
+/* ── Spin ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin { animation: spin 0.7s linear infinite; }
+
+/* ── Stagger grid children ── */
+.stagger-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-grid > *:nth-child(2) { animation-delay: 0.12s; }
+.stagger-grid > *:nth-child(3) { animation-delay: 0.19s; }
+.stagger-grid > *:nth-child(4) { animation-delay: 0.26s; }
+.stagger-grid > *:nth-child(5) { animation-delay: 0.33s; }
+.stagger-grid > *:nth-child(6) { animation-delay: 0.40s; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
