@@ -50,6 +50,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [editDeadline, setEditDeadline] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [applyNote, setApplyNote] = useState("");
+  const [attachment, setAttachment] = useState<{ name: string; data: string } | null>(null);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
 
   if (!task) {
@@ -162,6 +163,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 )}
               </div>
               <p className="text-slate-200 text-sm leading-relaxed">{task.submission.proofText}</p>
+              {task.submission.attachmentName && (
+                <div className="mt-3">
+                  {task.submission.attachmentData?.startsWith("data:image") ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={task.submission.attachmentData} alt={task.submission.attachmentName} className="max-h-48 rounded-xl border border-white/[0.08] object-contain" />
+                  ) : (
+                    <a href={task.submission.attachmentData} download={task.submission.attachmentName}
+                      className="outline-btn text-slate-200 text-xs px-3 py-2 rounded-xl inline-flex items-center gap-1.5">
+                      📎 {task.submission.attachmentName}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -228,9 +242,22 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   className="w-full px-4 py-3 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                 />
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-400 hover:text-white transition-colors">
+                  <span className="px-4 py-2.5 rounded-2xl border border-white/[0.08] text-xs" style={{ background: "rgba(255,255,255,0.04)" }}>
+                    {attachment ? `📎 ${attachment.name}` : "Attach file (optional)"}
+                  </span>
+                  <input type="file" accept="image/*,.pdf,.zip" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setAttachment({ name: file.name, data: reader.result as string });
+                    reader.readAsDataURL(file);
+                  }} />
+                  {attachment && <button onClick={() => setAttachment(null)} className="text-red-400 text-xs">✕</button>}
+                </label>
                 <button
                   disabled={loading || !proofText.trim()}
-                  onClick={() => runAction(() => submitTask(task.id, { proofText: proofText.trim(), proofLink: proofLink.trim() }), "Submission sent to the creator for review.")}
+                  onClick={() => runAction(() => submitTask(task.id, { proofText: proofText.trim(), proofLink: proofLink.trim(), attachmentName: attachment?.name, attachmentData: attachment?.data }), "Submission sent to the creator for review.")}
                   className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   <IconCheck className="w-4 h-4" />

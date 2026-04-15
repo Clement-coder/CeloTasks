@@ -23,6 +23,8 @@ export interface TaskSubmission {
   proofText: string;
   proofLink: string;
   submittedAt: string;
+  attachmentName?: string;
+  attachmentData?: string; // base64 data URL
 }
 
 export interface TaskApplication {
@@ -87,7 +89,7 @@ interface TaskStore {
   setMyAddress: (addr: string) => void;
   createTask: (input: CreateTaskInput) => string;
   acceptTask: (id: string) => void;
-  submitTask: (id: string, payload: { proofText: string; proofLink: string }) => void;
+  submitTask: (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => void;
   requestRevision: (id: string, feedback: string) => void;
   approveTask: (id: string) => void;
   releasePayment: (id: string) => void;
@@ -369,21 +371,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const submitTask = (id: string, payload: { proofText: string; proofLink: string }) => {
+  const submitTask = (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => {
     const now = new Date().toISOString();
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id
-          ? {
-              ...task,
-              status: "submitted",
-              creatorFeedback: undefined,
-              submission: {
-                proofText: payload.proofText,
-                proofLink: payload.proofLink,
-                submittedAt: now,
-              },
-            }
+          ? { ...task, status: "submitted", creatorFeedback: undefined, submission: { proofText: payload.proofText, proofLink: payload.proofLink, submittedAt: now, attachmentName: payload.attachmentName, attachmentData: payload.attachmentData } }
           : task,
       ),
     );
