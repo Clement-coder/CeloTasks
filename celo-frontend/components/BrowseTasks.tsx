@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
 import { IconPlus, IconSearch } from "@/components/Icons";
-import { TASK_CATEGORIES, useTaskStore } from "@/lib/taskStore";
+import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
 import { type ToastType } from "@/hooks/useToast";
 
 interface Props {
@@ -18,6 +18,9 @@ export default function BrowseTasks({ onToast }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [difficulty, setDifficulty] = useState("All");
+  const [minReward, setMinReward] = useState("");
+  const [maxReward, setMaxReward] = useState("");
   const [sort, setSort] = useState("Newest");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,6 +34,9 @@ export default function BrowseTasks({ onToast }: Props) {
       const haystack = `${task.title} ${task.description} ${task.tags.join(" ")}`.toLowerCase();
       if (search && !haystack.includes(search.toLowerCase())) return false;
       if (category !== "All" && task.category !== category) return false;
+      if (difficulty !== "All" && task.difficulty !== difficulty) return false;
+      if (minReward && Number(task.reward) < Number(minReward)) return false;
+      if (maxReward && Number(task.reward) > Number(maxReward)) return false;
       return true;
     });
 
@@ -75,6 +81,24 @@ export default function BrowseTasks({ onToast }: Props) {
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
             />
           </div>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              placeholder="Min $"
+              value={minReward}
+              onChange={(e) => setMinReward(e.target.value)}
+              className="w-20 px-3 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+            <input
+              type="number"
+              placeholder="Max $"
+              value={maxReward}
+              onChange={(e) => setMaxReward(e.target.value)}
+              className="w-20 px-3 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+          </div>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -96,6 +120,20 @@ export default function BrowseTasks({ onToast }: Props) {
               onClick={() => setCategory(item)}
               className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
                 category === item ? "border-teal-500/50 text-teal-400 bg-teal-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {["All", ...TASK_DIFFICULTIES].map((item) => (
+            <button
+              key={item}
+              onClick={() => setDifficulty(item)}
+              className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                difficulty === item ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
               }`}
             >
               {item}
