@@ -36,7 +36,7 @@ const STATUS_LABELS = {
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask } = useTaskStore();
+  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -44,6 +44,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [proofLink, setProofLink] = useState("");
   const [feedback, setFeedback] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editReward, setEditReward] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [editDesc, setEditDesc] = useState("");
 
   if (!task) {
     return (
@@ -272,6 +277,37 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               >
                 Cancel Task
               </button>
+            )}
+
+            {isCreator && task.status === "open" && !editing && (
+              <button onClick={() => { setEditing(true); setEditTitle(task.title); setEditReward(task.reward); setEditDeadline(task.deadline); setEditDesc(task.description); }}
+                className="outline-btn text-slate-300 font-semibold px-5 py-3 rounded-2xl cursor-pointer text-sm">
+                Edit Task
+              </button>
+            )}
+
+            {isCreator && task.status === "open" && editing && (
+              <div className="flex flex-col gap-3">
+                <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Title"
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="Description" rows={3}
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                <div className="flex gap-2">
+                  <input value={editReward} onChange={(e) => setEditReward(e.target.value)} placeholder="Reward" type="number"
+                    className="flex-1 px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                  <input value={editDeadline} onChange={(e) => setEditDeadline(e.target.value)} type="date"
+                    className="flex-1 px-4 py-3 rounded-2xl text-white text-sm focus:outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => { editTask(task.id, { title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline }); setEditing(false); addToast("Task updated.", "success"); }}
+                    className="gradient-btn text-white font-semibold px-4 py-2.5 rounded-2xl cursor-pointer text-sm flex-1">Save</button>
+                  <button onClick={() => setEditing(false)} className="outline-btn text-slate-300 px-4 py-2.5 rounded-2xl cursor-pointer text-sm">Cancel</button>
+                </div>
+              </div>
             )}
 
             {!isCreator && !isWorker && task.status !== "open" && (

@@ -84,7 +84,7 @@ interface TaskStore {
   requestRevision: (id: string, feedback: string) => void;
   approveTask: (id: string) => void;
   releasePayment: (id: string) => void;
-  cancelTask: (id: string) => void;
+  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => void;
   getTask: (id: string) => Task | undefined;
   browseTasks: Task[];
   myCreatedTasks: Task[];
@@ -459,6 +459,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (task) setActivity((prev) => appendActivity(prev, { ...task, status: "cancelled" }, "cancelled", currentUser, "Task cancelled by creator."));
   };
 
+  const editTask = (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => {
+    setTasks((prev) => prev.map((task) => task.id === id && task.status === "open" && task.creator === currentUser ? { ...task, ...updates } : task));
+  };
+
   const browseTasks = tasks.filter((task) => task.status === "open" && task.creator !== currentUser);
   const myCreatedTasks = sortByNewest(tasks.filter((task) => task.creator === currentUser)) as Task[];
   const myAcceptedTasks = sortByNewest(tasks.filter((task) => task.acceptor === currentUser)) as Task[];
@@ -497,6 +501,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         approveTask,
         releasePayment,
         cancelTask,
+        editTask,
         getTask,
         browseTasks,
         myCreatedTasks,
