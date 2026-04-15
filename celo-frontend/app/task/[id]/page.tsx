@@ -1,26 +1,47 @@
 "use client";
-import { use, useState } from "react";
-import { useTaskStore } from "@/lib/taskStore";
-import { useToast } from "@/hooks/useToast";
-import ToastContainer from "@/components/ToastContainer";
-import ConfirmDialog from "@/components/ConfirmDialog";
+
 import Link from "next/link";
-import { IconCoin, IconArrowRight, IconSearch, IconCheck, IconZap, IconExternalLink } from "@/components/Icons";
+import { use, useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import ToastContainer from "@/components/ToastContainer";
+import { useToast } from "@/hooks/useToast";
+import { useTaskStore } from "@/lib/taskStore";
+import {
+  IconArrowRight,
+  IconCheck,
+  IconCoin,
+  IconExternalLink,
+  IconSearch,
+  IconWallet,
+  IconZap,
+} from "@/components/Icons";
 
 const STATUS_STYLES = {
-  open:        "text-teal-400 bg-teal-400/10 border-teal-400/20",
-  in_progress: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
-  completed:   "text-green-400 bg-green-400/10 border-green-400/20",
+  open: "text-teal-400 bg-teal-400/10 border-teal-400/20",
+  in_progress: "text-amber-300 bg-amber-400/10 border-amber-400/20",
+  submitted: "text-sky-300 bg-sky-400/10 border-sky-400/20",
+  approved: "text-green-300 bg-green-400/10 border-green-400/20",
+  paid: "text-fuchsia-300 bg-fuchsia-400/10 border-fuchsia-400/20",
 };
-const STATUS_LABELS = { open: "Open", in_progress: "In Progress", completed: "Completed" };
+
+const STATUS_LABELS = {
+  open: "Open",
+  in_progress: "In Progress",
+  submitted: "Needs Review",
+  approved: "Approved",
+  paid: "Paid",
+};
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, acceptTask, completeTask, releasePayment } = useTaskStore();
-  const task = getTask(id);
+  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
+  const task = getTask(id);
   const [loading, setLoading] = useState(false);
-  const [confirm, setConfirm] = useState<null | { fn: () => void; title: string; message: string; label: string; danger?: boolean }>(null);
+  const [proofText, setProofText] = useState("");
+  const [proofLink, setProofLink] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (!task) {
     return (
@@ -36,93 +57,242 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const handle = async (action: (id: string) => void, msg: string) => {
+  const isCreator = task.creator === currentUser;
+  const isWorker = task.acceptor === currentUser;
+
+  const runAction = async (fn: () => void, message: string) => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800)); // simulate tx
-    action(id);
-    addToast(msg, "success");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    fn();
+    addToast(message, "success");
     setLoading(false);
-    setConfirm(null);
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 flex flex-col gap-6">
+    <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-6">
       <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm flex items-center gap-1.5 transition-colors w-fit">
         <IconArrowRight className="w-4 h-4 rotate-180" /> Back to Dashboard
       </Link>
 
-      <div className="glass-card rounded-2xl p-6 flex flex-col gap-5">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-2xl font-bold text-white leading-snug">{task.title}</h1>
-          <span className={`text-xs px-3 py-1.5 rounded-full border shrink-0 ${STATUS_STYLES[task.status]}`}>
-            {STATUS_LABELS[task.status]}
-          </span>
-        </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_360px] gap-6">
+        <section className="glass-card rounded-3xl p-6 sm:p-8 flex flex-col gap-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className={`text-xs px-3 py-1.5 rounded-full border ${STATUS_STYLES[task.status]}`}>{STATUS_LABELS[task.status]}</span>
+                <span className="text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-slate-400">{task.category}</span>
+                <span className="text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-slate-500">{task.difficulty}</span>
+              </div>
+              <h1 className="text-3xl font-bold text-white leading-tight">{task.title}</h1>
+            </div>
 
-        <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "rgba(20,184,166,0.08)", border: "1px solid rgba(20,184,166,0.15)" }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(20,184,166,0.15)" }}>
-            <IconCoin className="w-5 h-5 text-teal-400" />
+            <div className="rounded-2xl px-4 py-3 border border-teal-500/15" style={{ background: "rgba(20,184,166,0.08)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Reward</p>
+              <p className="gradient-text text-3xl font-bold">
+                {task.reward} <span className="text-base">{task.currency}</span>
+              </p>
+            </div>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Creator</p>
+              <p className="text-white font-mono text-xs break-all">{task.creator}</p>
+            </div>
+            <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Deadline</p>
+              <p className="text-white">{task.deadline}</p>
+            </div>
+            <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Effort</p>
+              <p className="text-white">{task.estimatedHours} hours</p>
+            </div>
+          </div>
+
           <div>
-            <p className="text-slate-400 text-xs uppercase tracking-wider">Reward</p>
-            <p className="gradient-text font-bold text-2xl">{task.reward} <span className="text-base">{task.currency}</span></p>
+            <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Brief</p>
+            <p className="text-slate-200 leading-relaxed">{task.description}</p>
           </div>
-        </div>
 
-        <div>
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Description</p>
-          <p className="text-slate-200 text-sm leading-relaxed">{task.description}</p>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-3">Deliverables</p>
+              <ul className="flex flex-col gap-2 text-sm text-slate-200">
+                {task.deliverables.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-400 mt-2 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-3">Submission Guide</p>
+              <p className="text-sm text-slate-200 leading-relaxed">{task.submissionGuide}</p>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {task.tags.map((tag) => (
+                  <span key={tag} className="text-xs px-2.5 py-1 rounded-full border border-white/[0.08] text-slate-400">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="glass-card rounded-xl p-3">
-            <p className="text-slate-500 text-xs mb-1">Posted by</p>
-            <p className="text-white text-sm font-mono">{task.creator}</p>
-          </div>
-          <div className="glass-card rounded-xl p-3">
-            <p className="text-slate-500 text-xs mb-1">Posted on</p>
-            <p className="text-white text-sm">{task.createdAt}</p>
-          </div>
-          {task.acceptor && (
-            <div className="glass-card rounded-xl p-3 col-span-2">
-              <p className="text-slate-500 text-xs mb-1">Accepted by</p>
-              <p className="text-white text-sm font-mono">{task.acceptor}</p>
+          {task.submission && (
+            <div className="rounded-2xl p-5 border border-sky-400/15" style={{ background: "rgba(56,189,248,0.07)" }}>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Latest Submission</p>
+                  <p className="text-white text-sm">Submitted {new Date(task.submission.submittedAt).toLocaleString()}</p>
+                </div>
+                {task.submission.proofLink && (
+                  <a href={task.submission.proofLink} target="_blank" rel="noreferrer" className="outline-btn text-slate-200 text-sm px-4 py-2 rounded-xl flex items-center gap-1.5">
+                    Open Proof <IconExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+              <p className="text-slate-200 text-sm leading-relaxed">{task.submission.proofText}</p>
             </div>
           )}
-        </div>
 
-        <div className="flex gap-3 pt-2">
-          {task.status === "open" && (
-            <button disabled={loading}
-              onClick={() => setConfirm({ fn: () => handle(acceptTask, "Task accepted! Check My Tasks."), title: "Accept Task", message: "Once accepted you're committing to complete this task.", label: "Accept Task" })}
-              className="gradient-btn text-white font-semibold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex-1 flex items-center justify-center gap-2">
-              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Accepting...</> : <><IconZap className="w-4 h-4" />Accept Task</>}
-            </button>
+          {task.creatorFeedback && (
+            <div className="rounded-2xl p-5 border border-amber-400/15" style={{ background: "rgba(251,191,36,0.08)" }}>
+              <p className="text-amber-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Creator Feedback</p>
+              <p className="text-slate-200 text-sm leading-relaxed">{task.creatorFeedback}</p>
+            </div>
           )}
-          {task.status === "in_progress" && (
-            <button disabled={loading}
-              onClick={() => handle(completeTask, "Task marked as completed!")}
-              className="outline-btn text-white font-semibold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex-1 flex items-center justify-center gap-2">
-              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</> : <><IconCheck className="w-4 h-4" />Mark Completed</>}
-            </button>
-          )}
-          {task.status === "completed" && (
-            <button disabled={loading}
-              onClick={() => setConfirm({ fn: () => handle(releasePayment, "Payment released!"), title: "Release Payment", message: `Send ${task.reward} ${task.currency} to the acceptor. This cannot be undone.`, label: "Release Payment", danger: true })}
-              className="gradient-btn text-white font-semibold px-6 py-3 rounded-xl cursor-pointer disabled:opacity-50 flex-1 flex items-center justify-center gap-2">
-              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</> : <><IconCoin className="w-4 h-4" />Release Payment</>}
-            </button>
-          )}
-          <a href="https://celoscan.io" target="_blank" rel="noopener noreferrer"
-            className="outline-btn text-slate-400 text-sm px-4 py-3 rounded-xl flex items-center gap-1.5">
-            Explorer <IconExternalLink className="w-4 h-4" />
-          </a>
-        </div>
+        </section>
+
+        <aside className="flex flex-col gap-4">
+          <div className="glass-card rounded-3xl p-5 flex flex-col gap-4">
+            <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold">Workflow Actions</p>
+
+            {task.status === "open" && !isCreator && (
+              <button
+                disabled={loading}
+                onClick={() => runAction(() => acceptTask(task.id), "Task accepted and moved into your work queue.")}
+                className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                <IconZap className="w-4 h-4" />
+                {loading ? "Accepting..." : "Accept Task"}
+              </button>
+            )}
+
+            {task.status === "in_progress" && isWorker && (
+              <>
+                <textarea
+                  value={proofText}
+                  onChange={(e) => setProofText(e.target.value)}
+                  placeholder="Summarize what you completed, key decisions, and any context the creator should know."
+                  className="w-full min-h-28 px-4 py-3 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                />
+                <input
+                  value={proofLink}
+                  onChange={(e) => setProofLink(e.target.value)}
+                  placeholder="Proof link (Figma, Loom, Notion, Drive, etc.)"
+                  className="w-full px-4 py-3 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                />
+                <button
+                  disabled={loading || !proofText.trim()}
+                  onClick={() => runAction(() => submitTask(task.id, { proofText: proofText.trim(), proofLink: proofLink.trim() }), "Submission sent to the creator for review.")}
+                  className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  <IconCheck className="w-4 h-4" />
+                  {loading ? "Submitting..." : "Submit Work"}
+                </button>
+              </>
+            )}
+
+            {task.status === "submitted" && isCreator && (
+              <>
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="If changes are needed, explain what should be revised before approval."
+                  className="w-full min-h-28 px-4 py-3 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    disabled={loading}
+                    onClick={() => runAction(() => approveTask(task.id), "Submission approved. Payment can now be released.")}
+                    className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    <IconCheck className="w-4 h-4" />
+                    Approve
+                  </button>
+                  <button
+                    disabled={loading || !feedback.trim()}
+                    onClick={() => runAction(() => requestRevision(task.id, feedback.trim()), "Revision requested and sent back to the worker.")}
+                    className="outline-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60"
+                  >
+                    Request Revision
+                  </button>
+                </div>
+              </>
+            )}
+
+            {task.status === "approved" && isCreator && (
+              <button
+                disabled={loading}
+                onClick={() => setConfirmOpen(true)}
+                className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                <IconCoin className="w-4 h-4" />
+                {loading ? "Paying..." : "Release Payment"}
+              </button>
+            )}
+
+            {task.status === "paid" && (
+              <div className="rounded-2xl p-4 border border-fuchsia-400/15" style={{ background: "rgba(217,70,239,0.08)" }}>
+                <p className="text-fuchsia-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Workflow Complete</p>
+                <p className="text-sm text-slate-200 leading-relaxed">
+                  This mock task is fully complete. Use the activity feed and profile page to see how paid work rolls into frontend analytics.
+                </p>
+              </div>
+            )}
+
+            {!isCreator && !isWorker && task.status !== "open" && (
+              <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <p className="text-slate-300 text-sm leading-relaxed">This task already has an active workflow. You can still inspect the creator brief and submission history.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="glass-card rounded-3xl p-5 flex flex-col gap-4">
+            <p className="text-slate-500 text-xs uppercase tracking-[0.2em] font-semibold">Task Snapshot</p>
+            <div className="flex items-center gap-3 rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <IconWallet className="w-5 h-5 text-teal-400" />
+              <div>
+                <p className="text-white text-sm font-medium">Role awareness</p>
+                <p className="text-slate-500 text-xs">{isCreator ? "You are the creator on this task." : isWorker ? "You are the active worker on this task." : "You are viewing as an observer."}</p>
+              </div>
+            </div>
+            <Link href="/activity" className="outline-btn text-slate-200 text-sm px-4 py-3 rounded-2xl flex items-center justify-between">
+              Review global activity feed <IconArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/profile" className="outline-btn text-slate-200 text-sm px-4 py-3 rounded-2xl flex items-center justify-between">
+              Open reputation profile <IconArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </aside>
       </div>
 
-      <ConfirmDialog open={!!confirm} title={confirm?.title ?? ""} message={confirm?.message ?? ""}
-        confirmLabel={confirm?.label ?? "Confirm"} danger={confirm?.danger}
-        onConfirm={() => confirm?.fn()} onCancel={() => setConfirm(null)} />
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Release Payment"
+        message={`Release ${task.reward} ${task.currency} to the worker and mark this workflow complete?`}
+        confirmLabel="Release Payment"
+        danger
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void runAction(() => releasePayment(task.id), "Payment released. This task is now complete.");
+        }}
+      />
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>

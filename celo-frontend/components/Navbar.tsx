@@ -44,6 +44,22 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.06] px-2 py-1" style={{ background: "rgba(255,255,255,0.03)" }}>
+              {[
+                { href: "/dashboard", label: "Dashboard" },
+                { href: "/create-task", label: "Create" },
+                { href: "/activity", label: "Activity" },
+                { href: "/profile", label: "Profile" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
             {miniPay && (
               <span className="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-teal-500/30 text-teal-400"
                 style={{ background: "rgba(20,184,166,0.08)" }}>
@@ -53,10 +69,6 @@ export default function Navbar() {
             )}
             {isConnected && address ? (
               <div className="flex items-center gap-2">
-                <Link href="/dashboard"
-                  className="hidden sm:block text-sm text-slate-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/[0.05]">
-                  Dashboard
-                </Link>
                 <button onClick={() => disconnect()}
                   className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
                   {shortenAddress(address)}

@@ -2,14 +2,13 @@
 import { useAccount, useConnect, useBalance } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { shortenAddress } from "@/lib/wagmi";
 import BrowseTasks from "@/components/BrowseTasks";
 import MyTasks from "@/components/MyTasks";
-import Modal from "@/components/Modal";
-import CreateTaskForm from "@/components/CreateTaskForm";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
-import { IconWallet, IconTrendingUp, IconStar, IconLock, IconPlus } from "@/components/Icons";
+import { IconArrowRight, IconCheck, IconCoin, IconLock, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
 import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import { useTaskStore } from "@/lib/taskStore";
 
@@ -21,9 +20,8 @@ export default function DashboardPage() {
   const { data: balance } = useBalance({ address, query: { enabled: !!address } });
   const { balance: cusdBalance } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
-  const [showCreate, setShowCreate] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
-  const { setMyAddress } = useTaskStore();
+  const { setMyAddress, stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
 
   // Sync wallet address into task store
   useEffect(() => {
@@ -58,16 +56,15 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
           <p className="text-slate-400 text-sm mt-0.5">Welcome back, <span className="text-white font-mono">{shortenAddress(address!)}</span></p>
         </div>
-        <button onClick={() => setShowCreate(true)}
+        <Link href="/create-task"
           className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
           <IconPlus className="w-4 h-4" />
-          <span className="hidden sm:inline">Create Task</span>
-          <span className="sm:hidden">New</span>
-        </button>
+          <span>Create Task</span>
+        </Link>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)" }}>
@@ -103,19 +100,68 @@ export default function DashboardPage() {
           <div className="flex-1">
             <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Reputation</p>
             <div className="flex items-center gap-2">
-              <span className="gradient-text font-bold text-xl leading-none">847</span>
-              <span className="text-xs px-2 py-0.5 rounded-full border border-teal-500/30 text-teal-400">Top 12%</span>
+              <span className="gradient-text font-bold text-xl leading-none">{stats.successRate}%</span>
+              <span className="text-xs px-2 py-0.5 rounded-full border border-teal-500/30 text-teal-400">Success rate</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: "84.7%", background: "linear-gradient(90deg, #14b8a6, #22c55e)" }} />
+              <div className="h-full rounded-full" style={{ width: `${stats.successRate}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e)" }} />
             </div>
             <div className="flex gap-3 mt-2 text-xs text-slate-500">
-              <span><span className="text-white font-medium">12</span> completed</span>
-              <span><span className="text-white font-medium">3</span> created</span>
-              <span><span className="text-green-400 font-medium">92%</span> success</span>
+              <span><span className="text-white font-medium">{myAcceptedTasks.length}</span> assigned</span>
+              <span><span className="text-white font-medium">{reviewQueue.length}</span> in review</span>
+              <span><span className="text-fuchsia-300 font-medium">{paymentQueue.length}</span> ready to pay</span>
             </div>
           </div>
         </div>
+
+        <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "rgba(217,70,239,0.1)", border: "1px solid rgba(217,70,239,0.2)" }}>
+            <IconCoin className="w-5 h-5 text-fuchsia-300" />
+          </div>
+          <div className="flex-1">
+            <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Frontend Ops</p>
+            <div className="grid grid-cols-2 gap-3 text-xs text-slate-400">
+              <div>
+                <p className="text-white text-lg font-semibold">{stats.openTasks}</p>
+                <p>Open tasks</p>
+              </div>
+              <div>
+                <p className="text-white text-lg font-semibold">{stats.inProgressTasks}</p>
+                <p>Active work</p>
+              </div>
+              <div>
+                <p className="text-white text-lg font-semibold">{stats.reviewQueue}</p>
+                <p>Need review</p>
+              </div>
+              <div>
+                <p className="text-white text-lg font-semibold">{stats.readyForPayout}</p>
+                <p>Need payout</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Link href="/create-task" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
+          <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Creator Flow</p>
+          <h3 className="text-white text-xl font-semibold">Post a structured task brief</h3>
+          <p className="text-slate-400 text-sm mt-2">Set reward, deadline, deliverables, and review instructions with the full frontend composer.</p>
+          <span className="text-teal-300 text-sm mt-4 inline-flex items-center gap-1.5">Open composer <IconArrowRight className="w-4 h-4" /></span>
+        </Link>
+        <Link href="/activity" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
+          <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Operations</p>
+          <h3 className="text-white text-xl font-semibold">Track all workflow events</h3>
+          <p className="text-slate-400 text-sm mt-2">Watch mock activity for publish, accept, submit, approve, and payout events in one place.</p>
+          <span className="text-sky-300 text-sm mt-4 inline-flex items-center gap-1.5">View activity <IconArrowRight className="w-4 h-4" /></span>
+        </Link>
+        <Link href="/profile" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
+          <p className="text-fuchsia-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Reputation</p>
+          <h3 className="text-white text-xl font-semibold">See the worker and creator profile</h3>
+          <p className="text-slate-400 text-sm mt-2">Earnings, spend, task mix, reliability, and delivery history are all surfaced on the frontend.</p>
+          <span className="text-fuchsia-300 text-sm mt-4 inline-flex items-center gap-1.5">Open profile <IconArrowRight className="w-4 h-4" /></span>
+        </Link>
       </div>
 
       {/* Tabs */}
@@ -131,16 +177,9 @@ export default function DashboardPage() {
       </div>
 
       {tab === "browse"
-        ? <BrowseTasks onToast={addToast} onCreateTask={() => setShowCreate(true)} />
+        ? <BrowseTasks onToast={addToast} />
         : <MyTasks onToast={addToast} />
       }
-
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Task">
-        <CreateTaskForm
-          onSuccess={() => { setShowCreate(false); addToast("Task created!", "success"); }}
-          onToast={addToast}
-        />
-      </Modal>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
