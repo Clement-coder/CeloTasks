@@ -1,16 +1,15 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { useAccount } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 import { useEffect } from "react";
 import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 import { shortenAddress } from "@/lib/wagmi";
 
 export default function ProfilePage() {
-  const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
-  const { disconnect } = useDisconnect();
+  const { address } = useAccount();
+  const { login, logout, ready, authenticated } = usePrivy();
   const { currentUser, myAcceptedTasks, myCreatedTasks, stats, setMyAddress } = useTaskStore();
 
   useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
@@ -31,19 +30,19 @@ export default function ProfilePage() {
             <p className="text-teal-300 text-xs uppercase tracking-[0.2em] font-semibold mb-3">Profile</p>
             <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">Your reputation &amp; history</h1>
           </div>
-          <div className="rounded-3xl px-5 py-4 border border-white/[0.08] flex flex-col gap-3" style={{ background: "rgba(11,15,20,0.35)" }}>
-            <div>
-              <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Wallet</p>
-              <p className="text-white font-mono text-sm">{isConnected && address ? shortenAddress(address) : "Not connected"}</p>
+            <div className="rounded-3xl px-5 py-4 border border-white/[0.08] flex flex-col gap-3" style={{ background: "rgba(11,15,20,0.35)" }}>
+              <div>
+                <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Wallet</p>
+                <p className="text-white font-mono text-sm">{authenticated && address ? shortenAddress(address) : "Not connected"}</p>
+              </div>
+              {authenticated ? (
+                <button onClick={logout} className="outline-btn text-slate-300 text-xs px-3 py-1.5 rounded-xl cursor-pointer">Disconnect</button>
+              ) : (
+                <button onClick={login} disabled={!ready} className="gradient-btn text-white text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
+                  <IconWallet className="w-3.5 h-3.5" /> Connect Wallet
+                </button>
+              )}
             </div>
-            {isConnected ? (
-              <button onClick={() => disconnect()} className="outline-btn text-slate-300 text-xs px-3 py-1.5 rounded-xl cursor-pointer">Disconnect</button>
-            ) : (
-              <button onClick={() => connect({ connector: injected() })} className="gradient-btn text-white text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5">
-                <IconWallet className="w-3.5 h-3.5" /> Connect Wallet
-              </button>
-            )}
-          </div>
         </div>
       </section>
 

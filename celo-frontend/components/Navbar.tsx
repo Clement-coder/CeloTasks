@@ -1,33 +1,29 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { usePrivy } from "@privy-io/react-auth";
+import { useAccount } from "wagmi";
 import { shortenAddress, isMiniPay } from "@/lib/wagmi";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
 
 export default function Navbar() {
-  const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
-  const { disconnect } = useDisconnect();
+  const { login, logout, ready, authenticated } = usePrivy();
+  const { address } = useAccount();
   const [miniPay, setMiniPay] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
-  const prevConnected = useRef<boolean | null>(null);
+  const prevAuth = useRef<boolean | null>(null);
+
+  useEffect(() => { setMiniPay(isMiniPay()); }, []);
 
   useEffect(() => {
-    setMiniPay(isMiniPay());
-    if (isMiniPay() && !isConnected) connect({ connector: injected() });
-  }, [connect, isConnected]);
-
-  // Toast on connect/disconnect
-  useEffect(() => {
-    if (prevConnected.current === null) { prevConnected.current = isConnected; return; }
-    if (isConnected && !prevConnected.current) addToast("Wallet connected", "success");
-    if (!isConnected && prevConnected.current) addToast("Wallet disconnected", "info");
-    prevConnected.current = isConnected;
-  }, [isConnected, addToast]);
+    if (!ready) return;
+    if (prevAuth.current === null) { prevAuth.current = authenticated; return; }
+    if (authenticated && !prevAuth.current) addToast("Wallet connected", "success");
+    if (!authenticated && prevAuth.current) addToast("Wallet disconnected", "info");
+    prevAuth.current = authenticated;
+  }, [authenticated, ready, addToast]);
 
   return (
     <>
@@ -51,15 +47,13 @@ export default function Navbar() {
                 { href: "/activity", label: "Activity" },
                 { href: "/profile", label: "Profile" },
               ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]"
-                >
+                <Link key={item.href} href={item.href}
+                  className="text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]">
                   {item.label}
                 </Link>
               ))}
             </div>
+
             {miniPay && (
               <span className="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-teal-500/30 text-teal-400"
                 style={{ background: "rgba(20,184,166,0.08)" }}>
@@ -67,16 +61,15 @@ export default function Navbar() {
                 MiniPay
               </span>
             )}
-            {isConnected && address ? (
-              <div className="flex items-center gap-2">
-                <button onClick={() => disconnect()}
-                  className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
-                  {shortenAddress(address)}
-                </button>
-              </div>
+
+            {authenticated && address ? (
+              <button onClick={logout}
+                className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
+                {shortenAddress(address)}
+              </button>
             ) : (
-              <button onClick={() => connect({ connector: injected() })}
-                className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer">
+              <button onClick={login} disabled={!ready}
+                className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer disabled:opacity-50">
                 Connect Wallet
               </button>
             )}

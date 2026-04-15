@@ -1,14 +1,25 @@
-// lib/wagmi.ts
-import { createConfig, http } from "wagmi";
+import { createConfig } from "@privy-io/wagmi";
+import { http } from "viem";
 import { celo } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
+import type { PrivyClientConfig } from "@privy-io/react-auth";
 
 export const wagmiConfig = createConfig({
   chains: [celo],
-  connectors: [injected()],
   transports: { [celo.id]: http() },
-  ssr: true,
 });
+
+export const privyConfig: PrivyClientConfig = {
+  defaultChain: celo,
+  supportedChains: [celo],
+  appearance: {
+    theme: "dark",
+    accentColor: "#14b8a6",
+    logo: "/celoTasklogo.png",
+  },
+  embeddedWallets: {
+    ethereum: { createOnLogin: "users-without-wallets" },
+  },
+};
 
 export const isMiniPay = (): boolean => {
   if (typeof window === "undefined") return false;

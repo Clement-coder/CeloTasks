@@ -1,6 +1,6 @@
 "use client";
-import { useAccount, useConnect, useBalance } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { useAccount, useBalance } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { shortenAddress } from "@/lib/wagmi";
@@ -15,20 +15,17 @@ import { useTaskStore } from "@/lib/taskStore";
 type Tab = "browse" | "my";
 
 export default function DashboardPage() {
-  const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { address } = useAccount();
+  const { login, ready, authenticated } = usePrivy();
   const { data: balance } = useBalance({ address, query: { enabled: !!address } });
   const { balance: cusdBalance } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
   const { toasts, addToast, removeToast } = useToast();
   const { setMyAddress, stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
 
-  // Sync wallet address into task store
-  useEffect(() => {
-    if (address) setMyAddress(address);
-  }, [address, setMyAddress]);
+  useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
 
-  if (!isConnected) {
+  if (!authenticated) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center px-4 text-center gap-6">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -39,12 +36,12 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-white mb-2">Connect your wallet</h2>
           <p className="text-slate-400 max-w-xs mx-auto">You need a wallet to access the dashboard and interact with tasks.</p>
         </div>
-        <button onClick={() => connect({ connector: injected() })}
-          className="gradient-btn text-white font-semibold px-8 py-3.5 rounded-xl cursor-pointer flex items-center gap-2">
+        <button onClick={login} disabled={!ready}
+          className="gradient-btn text-white font-semibold px-8 py-3.5 rounded-xl cursor-pointer flex items-center gap-2 disabled:opacity-50">
           <IconWallet className="w-4 h-4" />
           Connect Wallet
         </button>
-        <p className="text-slate-600 text-xs">Works with MiniPay, MetaMask, and any injected wallet</p>
+        <p className="text-slate-600 text-xs">Works with MiniPay, email, Google, and any wallet</p>
       </div>
     );
   }
