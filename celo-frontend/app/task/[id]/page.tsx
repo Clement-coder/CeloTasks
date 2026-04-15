@@ -36,7 +36,7 @@ const STATUS_LABELS = {
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask } = useTaskStore();
+  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [editReward, setEditReward] = useState("");
   const [editDeadline, setEditDeadline] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [applyNote, setApplyNote] = useState("");
+  const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
 
   if (!task) {
     return (
@@ -176,14 +178,38 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold">Workflow Actions</p>
 
             {task.status === "open" && !isCreator && (
-              <button
-                disabled={loading}
-                onClick={() => runAction(() => acceptTask(task.id), "Task accepted and moved into your work queue.")}
-                className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                <IconZap className="w-4 h-4" />
-                {loading ? "Accepting..." : "Accept Task"}
-              </button>
+              hasApplied ? (
+                <div className="rounded-2xl p-4 border border-teal-400/15" style={{ background: "rgba(20,184,166,0.08)" }}>
+                  <p className="text-teal-300 text-sm font-semibold">Application submitted ✓</p>
+                  <p className="text-slate-400 text-xs mt-1">Waiting for the creator to select a worker.</p>
+                </div>
+              ) : (
+                <>
+                  <textarea value={applyNote} onChange={(e) => setApplyNote(e.target.value)} placeholder="Why are you a good fit? (optional)"
+                    className="w-full min-h-20 px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                  <button disabled={loading} onClick={() => { applyToTask(task.id, applyNote.trim()); addToast("Application submitted!", "success"); }}
+                    className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2">
+                    <IconZap className="w-4 h-4" /> Apply for Task
+                  </button>
+                </>
+              )
+            )}
+
+            {task.status === "open" && isCreator && (task.applications?.length ?? 0) > 0 && (
+              <div className="flex flex-col gap-3">
+                <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold">Applicants ({task.applications!.length})</p>
+                {task.applications!.map((app) => (
+                  <div key={app.applicant} className="rounded-2xl p-4 border border-white/[0.08] flex flex-col gap-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <p className="text-white font-mono text-xs">{app.applicant}</p>
+                    {app.note && <p className="text-slate-400 text-sm">{app.note}</p>}
+                    <button onClick={() => { selectApplicant(task.id, app.applicant); addToast("Worker selected!", "success"); }}
+                      className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer self-start">
+                      Select Worker
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
 
             {task.status === "in_progress" && isWorker && (

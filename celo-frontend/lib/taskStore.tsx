@@ -25,6 +25,12 @@ export interface TaskSubmission {
   submittedAt: string;
 }
 
+export interface TaskApplication {
+  applicant: string;
+  note: string;
+  appliedAt: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -46,6 +52,7 @@ export interface Task {
   creatorFeedback?: string;
   approvedAt?: string;
   paidAt?: string;
+  applications?: TaskApplication[];
 }
 
 export interface ActivityItem {
@@ -85,6 +92,8 @@ interface TaskStore {
   approveTask: (id: string) => void;
   releasePayment: (id: string) => void;
   editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => void;
+  applyToTask: (id: string, note: string) => void;
+  selectApplicant: (taskId: string, applicant: string) => void;
   getTask: (id: string) => Task | undefined;
   browseTasks: Task[];
   myCreatedTasks: Task[];
@@ -463,6 +472,25 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => prev.map((task) => task.id === id && task.status === "open" && task.creator === currentUser ? { ...task, ...updates } : task));
   };
 
+  const applyToTask = (id: string, note: string) => {
+    setTasks((prev) => prev.map((task) => {
+      if (task.id !== id || task.status !== "open") return task;
+      const already = task.applications?.some((a) => a.applicant === currentUser);
+      if (already) return task;
+      return { ...task, applications: [...(task.applications ?? []), { applicant: currentUser, note, appliedAt: new Date().toISOString() }] };
+    }));
+  };
+
+  const selectApplicant = (taskId: string, applicant: string) => {
+    setTasks((prev) => prev.map((task) =>
+      task.id === taskId && task.status === "open" && task.creator === currentUser
+        ? { ...task, status: "in_progress", acceptor: applicant }
+        : task,
+    ));
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) setActivity((prev) => appendActivity(prev, { ...task, status: "in_progress", acceptor: applicant }, "accepted", applicant, "Selected by creator to work on this task."));
+  };
+
   const browseTasks = tasks.filter((task) => task.status === "open" && task.creator !== currentUser);
   const myCreatedTasks = sortByNewest(tasks.filter((task) => task.creator === currentUser)) as Task[];
   const myAcceptedTasks = sortByNewest(tasks.filter((task) => task.acceptor === currentUser)) as Task[];
@@ -502,6 +530,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         releasePayment,
         cancelTask,
         editTask,
+        applyToTask,
+        selectApplicant,
         getTask,
         browseTasks,
         myCreatedTasks,
