@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "CeloTasks — Micro tasks. Instant pay. Onchain reputation.",
@@ -47,7 +48,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full antialiased" style={{ background: "#0b0f14", color: "#f1f5f9" }}>
         <Providers>
           <Navbar />
-          <main className="min-h-screen" style={{ background: "#0b0f14" }}>{children}</main>
+          <main className="min-h-screen pb-16 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
+          <BottomNav />
         </Providers>
       </body>
     </html>
