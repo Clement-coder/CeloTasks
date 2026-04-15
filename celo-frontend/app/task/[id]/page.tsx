@@ -22,6 +22,7 @@ const STATUS_STYLES = {
   submitted: "text-sky-300 bg-sky-400/10 border-sky-400/20",
   approved: "text-green-300 bg-green-400/10 border-green-400/20",
   paid: "text-fuchsia-300 bg-fuchsia-400/10 border-fuchsia-400/20",
+  cancelled: "text-red-400 bg-red-400/10 border-red-400/20",
 };
 
 const STATUS_LABELS = {
@@ -30,11 +31,12 @@ const STATUS_LABELS = {
   submitted: "Needs Review",
   approved: "Approved",
   paid: "Paid",
+  cancelled: "Cancelled",
 };
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask } = useTaskStore();
+  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -253,6 +255,23 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   This mock task is fully complete. Use the activity feed and profile page to see how paid work rolls into frontend analytics.
                 </p>
               </div>
+            )}
+
+            {task.status === "cancelled" && (
+              <div className="rounded-2xl p-4 border border-red-400/15" style={{ background: "rgba(248,113,113,0.08)" }}>
+                <p className="text-red-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Task Cancelled</p>
+                <p className="text-sm text-slate-200">This task was cancelled by the creator.</p>
+              </div>
+            )}
+
+            {isCreator && (task.status === "open" || task.status === "in_progress") && (
+              <button
+                disabled={loading}
+                onClick={() => runAction(() => cancelTask(task.id), "Task cancelled.")}
+                className="outline-btn text-red-400 border-red-400/20 font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 text-sm"
+              >
+                Cancel Task
+              </button>
             )}
 
             {!isCreator && !isWorker && task.status !== "open" && (

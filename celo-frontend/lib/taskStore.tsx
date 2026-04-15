@@ -9,14 +9,15 @@ export const TASK_CURRENCIES = ["cUSD", "CELO"] as const;
 export type TaskCategory = (typeof TASK_CATEGORIES)[number];
 export type TaskDifficulty = (typeof TASK_DIFFICULTIES)[number];
 export type TaskCurrency = (typeof TASK_CURRENCIES)[number];
-export type TaskStatus = "open" | "in_progress" | "submitted" | "approved" | "paid";
+export type TaskStatus = "open" | "in_progress" | "submitted" | "approved" | "paid" | "cancelled";
 export type ActivityType =
   | "created"
   | "accepted"
   | "submitted"
   | "revision_requested"
   | "approved"
-  | "paid";
+  | "paid"
+  | "cancelled";
 
 export interface TaskSubmission {
   proofText: string;
@@ -83,6 +84,7 @@ interface TaskStore {
   requestRevision: (id: string, feedback: string) => void;
   approveTask: (id: string) => void;
   releasePayment: (id: string) => void;
+  cancelTask: (id: string) => void;
   getTask: (id: string) => Task | undefined;
   browseTasks: Task[];
   myCreatedTasks: Task[];
@@ -445,6 +447,18 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const getTask = (id: string) => tasks.find((task) => task.id === id);
 
+  const cancelTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id && (task.status === "open" || task.status === "in_progress") && task.creator === currentUser
+          ? { ...task, status: "cancelled" }
+          : task,
+      ),
+    );
+    const task = tasks.find((t) => t.id === id);
+    if (task) setActivity((prev) => appendActivity(prev, { ...task, status: "cancelled" }, "cancelled", currentUser, "Task cancelled by creator."));
+  };
+
   const browseTasks = tasks.filter((task) => task.status === "open" && task.creator !== currentUser);
   const myCreatedTasks = sortByNewest(tasks.filter((task) => task.creator === currentUser)) as Task[];
   const myAcceptedTasks = sortByNewest(tasks.filter((task) => task.acceptor === currentUser)) as Task[];
@@ -482,6 +496,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         requestRevision,
         approveTask,
         releasePayment,
+        cancelTask,
         getTask,
         browseTasks,
         myCreatedTasks,

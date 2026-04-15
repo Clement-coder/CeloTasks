@@ -10,6 +10,7 @@ const STATUS_STYLES: Record<TaskStatus, string> = {
   submitted: "text-sky-300 bg-sky-400/10 border-sky-400/20",
   approved: "text-green-300 bg-green-400/10 border-green-400/20",
   paid: "text-fuchsia-300 bg-fuchsia-400/10 border-fuchsia-400/20",
+  cancelled: "text-red-400 bg-red-400/10 border-red-400/20",
 };
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -18,6 +19,7 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
   submitted: "Needs Review",
   approved: "Approved",
   paid: "Paid",
+  cancelled: "Cancelled",
 };
 
 interface TaskCardProps {
