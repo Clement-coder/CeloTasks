@@ -44,10 +44,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CeloTasks" />
       </head>
-      <body className="min-h-full antialiased" style={{ background: "#0b0f14" }}>
+      <body className="min-h-full antialiased" style={{ background: "#0b0f14", color: "#f1f5f9" }}>
         <Providers>
           <Navbar />
-          <main>{children}</main>
+          <main className="min-h-screen" style={{ background: "#0b0f14" }}>{children}</main>
         </Providers>
       </body>
     </html>
