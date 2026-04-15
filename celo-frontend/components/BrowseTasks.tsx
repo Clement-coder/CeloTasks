@@ -25,8 +25,6 @@ export default function BrowseTasks({ onToast }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 6;
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 6;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);

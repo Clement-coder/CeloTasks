@@ -93,6 +93,7 @@ interface TaskStore {
   requestRevision: (id: string, feedback: string) => void;
   approveTask: (id: string) => void;
   releasePayment: (id: string) => void;
+  cancelTask: (id: string) => void;
   editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => void;
   applyToTask: (id: string, note: string) => void;
   selectApplicant: (taskId: string, applicant: string) => void;
