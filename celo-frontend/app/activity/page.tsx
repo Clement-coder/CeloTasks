@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { IconArrowRight, IconCheck, IconCoin, IconPlus, IconZap } from "@/components/Icons";
-import { useTaskStore } from "@/lib/taskStore";
+import { useTaskStore, type ActivityType } from "@/lib/taskStore";
 
 const LABELS = {
   created: { title: "Task Created", color: "text-teal-300", Icon: IconPlus },
@@ -11,19 +12,30 @@ const LABELS = {
   revision_requested: { title: "Revision Requested", color: "text-orange-300", Icon: IconArrowRight },
   approved: { title: "Submission Approved", color: "text-green-300", Icon: IconCheck },
   paid: { title: "Payment Released", color: "text-fuchsia-300", Icon: IconCoin },
+  cancelled: { title: "Task Cancelled", color: "text-red-400", Icon: IconArrowRight },
 };
+
+const FILTERS: { label: string; value: ActivityType | "all" }[] = [
+  { label: "All", value: "all" },
+  { label: "Created", value: "created" },
+  { label: "Accepted", value: "accepted" },
+  { label: "Submitted", value: "submitted" },
+  { label: "Approved", value: "approved" },
+  { label: "Paid", value: "paid" },
+  { label: "Cancelled", value: "cancelled" },
+];
 
 export default function ActivityPage() {
   const { activity, stats } = useTaskStore();
+  const [filter, setFilter] = useState<ActivityType | "all">("all");
+
+  const filtered = filter === "all" ? activity : activity.filter((a) => a.type === filter);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-6">
       <div className="glass-card rounded-3xl p-6 sm:p-8">
         <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-3">Activity Feed</p>
         <h1 className="text-4xl font-bold text-white leading-tight">Everything happening in the product, one stream.</h1>
-        <p className="text-slate-400 mt-3 max-w-2xl">
-          This page makes the mock workflow visible: publishing, assignment, delivery, review, and payout. When contracts arrive, this same layout can be wired to live events.
-        </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -40,9 +52,24 @@ export default function ActivityPage() {
         ))}
       </div>
 
+      <div className="flex gap-2 flex-wrap">
+        {FILTERS.map(({ label, value }) => (
+          <button key={value} onClick={() => setFilter(value)}
+            className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+              filter === value ? "border-sky-500/50 text-sky-400 bg-sky-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="glass-card rounded-3xl p-5 sm:p-6 flex flex-col gap-4">
-        {activity.map((item) => {
-          const { title, color, Icon } = LABELS[item.type];
+        {filtered.length === 0 && (
+          <p className="text-slate-500 text-sm text-center py-10">No activity for this filter yet.</p>
+        )}
+        {filtered.map((item) => {
+          const meta = LABELS[item.type] ?? LABELS.created;
+          const { title, color, Icon } = meta;
           return (
             <div key={item.id} className="rounded-2xl border border-white/[0.08] p-4 flex flex-col sm:flex-row sm:items-center gap-4" style={{ background: "rgba(255,255,255,0.03)" }}>
               <div className="w-11 h-11 rounded-2xl border border-white/[0.08] flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.03)" }}>
