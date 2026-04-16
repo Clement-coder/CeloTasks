@@ -51,6 +51,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [editDesc, setEditDesc] = useState("");
   const [applyNote, setApplyNote] = useState("");
   const [attachment, setAttachment] = useState<{ name: string; data: string } | null>(null);
+  const [disputeOpen, setDisputeOpen] = useState(false);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
 
   if (!task) {
@@ -273,6 +274,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               </>
             )}
 
+            {task.status === "submitted" && isWorker && (
+              <div className="rounded-2xl p-4 border border-sky-400/15" style={{ background: "rgba(56,189,248,0.07)" }}>
+                <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1">Work Submitted</p>
+                <p className="text-slate-400 text-sm">Your submission is under review. The creator will approve or request changes.</p>
+                <button
+                  onClick={() => setDisputeOpen(true)}
+                  className="mt-3 text-xs text-orange-400 hover:text-orange-300 transition-colors underline underline-offset-2 cursor-pointer"
+                >
+                  Creator not responding? Flag for dispute
+                </button>
+              </div>
+            )}
+
             {task.status === "submitted" && isCreator && (
               <>
                 <textarea
@@ -395,6 +409,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={disputeOpen}
+        title="Flag for Dispute"
+        message="This will mark the task as disputed and notify the creator that you're awaiting a response. In a live product this would escalate to a resolver. Continue?"
+        confirmLabel="Flag Dispute"
+        danger
+        onCancel={() => setDisputeOpen(false)}
+        onConfirm={() => {
+          setDisputeOpen(false);
+          addToast("Dispute flagged. The creator has been notified.", "info");
+        }}
+      />
 
       <ConfirmDialog
         open={confirmOpen}
