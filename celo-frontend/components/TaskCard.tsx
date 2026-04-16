@@ -30,10 +30,22 @@ interface TaskCardProps {
 }
 
 function timeAgo(dateStr: string) {
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  // Append T00:00:00 so it parses as local midnight, not UTC midnight
+  const ms = Date.now() - new Date(dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`).getTime();
+  const days = Math.floor(ms / 86400000);
   if (days <= 0) return "Today";
   if (days === 1) return "Yesterday";
   return `${days}d ago`;
+}
+
+function deadlineLabel(deadlineStr: string): { text: string; urgent: boolean } {
+  const diff = new Date(`${deadlineStr}T00:00:00`).getTime() - Date.now();
+  const days = Math.ceil(diff / 86400000);
+  if (days < 0) return { text: "Overdue", urgent: true };
+  if (days === 0) return { text: "Due today", urgent: true };
+  if (days === 1) return { text: "1 day left", urgent: true };
+  if (days <= 3) return { text: `${days} days left`, urgent: true };
+  return { text: `${days} days left`, urgent: false };
 }
 
 export default function TaskCard({ task, onAccept, primaryAction, loading }: TaskCardProps) {
@@ -64,6 +76,10 @@ export default function TaskCard({ task, onAccept, primaryAction, loading }: Tas
         <div className="rounded-2xl p-3 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
           <p className="text-slate-500 mb-1">Deadline</p>
           <p className="text-white">{task.deadline}</p>
+          {task.status !== "paid" && task.status !== "cancelled" && (() => {
+            const dl = deadlineLabel(task.deadline);
+            return <p className={`mt-0.5 font-medium ${dl.urgent ? "text-red-400" : "text-slate-500"}`}>{dl.text}</p>;
+          })()}
         </div>
         <div className="rounded-2xl p-3 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
           <p className="text-slate-500 mb-1">Effort</p>
