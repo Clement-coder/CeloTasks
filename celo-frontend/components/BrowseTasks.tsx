@@ -32,7 +32,6 @@ export default function BrowseTasks({ onToast }: Props) {
   }, []);
 
   const filtered = useMemo(() => {
-    setPage(1);
     let items = browseTasks.filter((task) => {
       const haystack = `${task.title} ${task.description} ${task.tags.join(" ")}`.toLowerCase();
       if (search && !haystack.includes(search.toLowerCase())) return false;
@@ -49,6 +48,8 @@ export default function BrowseTasks({ onToast }: Props) {
     if (sort === "Newest") items = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return items;
   }, [browseTasks, category, difficulty, search, sort, minReward, maxReward]);
+
+  useEffect(() => { setPage(1); }, [browseTasks, category, difficulty, search, sort, minReward, maxReward]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
