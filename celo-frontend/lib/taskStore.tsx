@@ -358,108 +358,68 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   };
 
   const acceptTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id && task.status === "open"
-          ? { ...task, status: "in_progress", acceptor: currentUser }
-          : task,
-      ),
-    );
-
-    const task = tasks.find((item) => item.id === id);
-    if (task) {
-      setActivity((prev) => appendActivity(prev, { ...task, status: "in_progress", acceptor: currentUser }, "accepted", currentUser, "Accepted the task and started work."));
-    }
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task || task.status !== "open") return prev;
+      const updated = { ...task, status: "in_progress" as const, acceptor: currentUser };
+      setActivity((a) => appendActivity(a, updated, "accepted", currentUser, "Accepted the task and started work."));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const submitTask = (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => {
     const now = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? { ...task, status: "submitted", creatorFeedback: undefined, submission: { proofText: payload.proofText, proofLink: payload.proofLink, submittedAt: now, attachmentName: payload.attachmentName, attachmentData: payload.attachmentData } }
-          : task,
-      ),
-    );
-
-    const task = tasks.find((item) => item.id === id);
-    if (task) {
-      setActivity((prev) => appendActivity(prev, { ...task, status: "submitted" }, "submitted", currentUser, "Submitted work proof for creator review."));
-    }
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task) return prev;
+      const updated = { ...task, status: "submitted" as const, creatorFeedback: undefined, submission: { proofText: payload.proofText, proofLink: payload.proofLink, submittedAt: now, attachmentName: payload.attachmentName, attachmentData: payload.attachmentData } };
+      setActivity((a) => appendActivity(a, updated, "submitted", currentUser, "Submitted work proof for creator review."));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const requestRevision = (id: string, feedback: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status: "in_progress",
-              creatorFeedback: feedback,
-            }
-          : task,
-      ),
-    );
-
-    const task = tasks.find((item) => item.id === id);
-    if (task) {
-      setActivity((prev) => appendActivity(prev, { ...task, status: "in_progress" }, "revision_requested", currentUser, feedback));
-    }
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task) return prev;
+      const updated = { ...task, status: "in_progress" as const, creatorFeedback: feedback };
+      setActivity((a) => appendActivity(a, updated, "revision_requested", currentUser, feedback));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const approveTask = (id: string) => {
     const approvedAt = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status: "approved",
-              approvedAt,
-              creatorFeedback: undefined,
-            }
-          : task,
-      ),
-    );
-
-    const task = tasks.find((item) => item.id === id);
-    if (task) {
-      setActivity((prev) => appendActivity(prev, { ...task, status: "approved", approvedAt }, "approved", currentUser, "Approved the submission and queued payment."));
-    }
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task) return prev;
+      const updated = { ...task, status: "approved" as const, approvedAt, creatorFeedback: undefined };
+      setActivity((a) => appendActivity(a, updated, "approved", currentUser, "Approved the submission and queued payment."));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const releasePayment = (id: string) => {
     const paidAt = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status: "paid",
-              paidAt,
-            }
-          : task,
-      ),
-    );
-
-    const task = tasks.find((item) => item.id === id);
-    if (task) {
-      setActivity((prev) => appendActivity(prev, { ...task, status: "paid", paidAt }, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`));
-    }
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task) return prev;
+      const updated = { ...task, status: "paid" as const, paidAt };
+      setActivity((a) => appendActivity(a, updated, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const getTask = (id: string) => tasks.find((task) => task.id === id);
 
   const cancelTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id && (task.status === "open" || task.status === "in_progress") && task.creator === currentUser
-          ? { ...task, status: "cancelled" }
-          : task,
-      ),
-    );
-    const task = tasks.find((t) => t.id === id);
-    if (task) setActivity((prev) => appendActivity(prev, { ...task, status: "cancelled" }, "cancelled", currentUser, "Task cancelled by creator."));
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task || !["open", "in_progress"].includes(task.status) || task.creator !== currentUser) return prev;
+      const updated = { ...task, status: "cancelled" as const };
+      setActivity((a) => appendActivity(a, updated, "cancelled", currentUser, "Task cancelled by creator."));
+      return prev.map((t) => (t.id === id ? updated : t));
+    });
   };
 
   const editTask = (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => {
@@ -476,13 +436,13 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   };
 
   const selectApplicant = (taskId: string, applicant: string) => {
-    setTasks((prev) => prev.map((task) =>
-      task.id === taskId && task.status === "open" && task.creator === currentUser
-        ? { ...task, status: "in_progress", acceptor: applicant }
-        : task,
-    ));
-    const task = tasks.find((t) => t.id === taskId);
-    if (task) setActivity((prev) => appendActivity(prev, { ...task, status: "in_progress", acceptor: applicant }, "accepted", applicant, "Selected by creator to work on this task."));
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (!task || task.status !== "open" || task.creator !== currentUser) return prev;
+      const updated = { ...task, status: "in_progress" as const, acceptor: applicant };
+      setActivity((a) => appendActivity(a, updated, "accepted", applicant, "Selected by creator to work on this task."));
+      return prev.map((t) => (t.id === taskId ? updated : t));
+    });
   };
 
   const browseTasks = tasks.filter((task) => task.status === "open" && task.creator !== currentUser);
