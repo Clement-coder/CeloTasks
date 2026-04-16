@@ -1,8 +1,10 @@
 {
+  "id": "/",
   "name": "CeloTasks",
   "short_name": "CeloTasks",
   "description": "Micro tasks. Instant pay. Onchain reputation.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0b0f14",
   "theme_color": "#0b0f14",
