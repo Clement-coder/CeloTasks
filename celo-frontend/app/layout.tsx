@@ -4,6 +4,7 @@ import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "CeloTasks — Micro tasks. Instant pay. Onchain reputation.",
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main className="min-h-screen pb-16 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
           <BottomNav />
+          <InstallPrompt />
         </Providers>
       </body>
     </html>
