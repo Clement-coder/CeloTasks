@@ -8,11 +8,10 @@ import { useState } from "react";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
+  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  if (!privyAppId) throw new Error("NEXT_PUBLIC_PRIVY_APP_ID is not set. Add it to .env.local.");
   return (
-    <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
-      config={privyConfig}
-    >
+    <PrivyProvider appId={privyAppId} config={privyConfig}>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={wagmiConfig}>
           <TaskProvider>

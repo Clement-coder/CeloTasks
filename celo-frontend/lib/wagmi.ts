@@ -2,7 +2,6 @@ import { createConfig } from "@privy-io/wagmi";
 import { http } from "viem";
 import { celo } from "wagmi/chains";
 import type { PrivyClientConfig } from "@privy-io/react-auth";
-import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 
 export const wagmiConfig = createConfig({
   chains: [celo],
@@ -19,9 +18,6 @@ export const privyConfig: PrivyClientConfig = {
   },
   embeddedWallets: {
     ethereum: { createOnLogin: "users-without-wallets" },
-  },
-  externalWallets: {
-    solana: { connectors: toSolanaWalletConnectors() },
   },
 };
 
