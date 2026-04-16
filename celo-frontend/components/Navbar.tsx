@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import WalletModal from "@/components/WalletModal";
+import { useTaskStore } from "@/lib/taskStore";
 
 export default function Navbar() {
   const { login, logout, ready, authenticated } = usePrivy();
@@ -18,6 +19,8 @@ export default function Navbar() {
   const prevAuth = useRef<boolean | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const { reviewQueue, paymentQueue } = useTaskStore();
+  const urgentCount = reviewQueue.length + paymentQueue.length;
 
   useEffect(() => { setMiniPay(isMiniPay()); }, []);
 
@@ -49,14 +52,19 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.06] px-2 py-1" style={{ background: "rgba(255,255,255,0.03)" }}>
               {[
                 { href: "/", label: "Home" },
-                { href: "/dashboard", label: "Browse" },
+                { href: "/dashboard", label: "Browse", badge: urgentCount > 0 ? urgentCount : undefined },
                 { href: "/create-task", label: "Create" },
-                { href: "/activity", label: "Activity" },
+                { href: "/activity", label: "Activity", badge: urgentCount > 0 ? urgentCount : undefined },
                 { href: "/profile", label: "Profile" },
               ].map((item) => (
                 <Link key={item.href} href={item.href}
-                  className="text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]">
+                  className="relative text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]">
                   {item.label}
+                  {item.badge && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
