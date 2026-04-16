@@ -3,8 +3,9 @@ import Image from "next/image";
 import {
   IconZap, IconShield, IconSmartphone,
   IconWallet, IconSearch, IconCheck,
-  IconArrowRight, IconCoin, IconUsers, IconClock, IconTrendingUp,
+  IconArrowRight, IconTrendingUp,
 } from "@/components/Icons";
+import LiveStats from "@/components/LiveStats";
 
 const FEATURES = [
   {
@@ -40,13 +41,6 @@ const STEPS = [
   { Icon: IconWallet, n: "01", title: "Connect Wallet",       desc: "Open in MiniPay or connect any Celo wallet. No sign-up, no email." },
   { Icon: IconSearch, n: "02", title: "Browse or Post Tasks", desc: "Find tasks that match your skills, or post one and set your own reward." },
   { Icon: IconCheck,  n: "03", title: "Complete & Get Paid",  desc: "Finish the work, get verified onchain, and receive cUSD instantly." },
-];
-
-const STATS = [
-  { Icon: IconCheck,      value: "2,400+", label: "Tasks Completed" },
-  { Icon: IconCoin,       value: "$48K+",  label: "Paid Out" },
-  { Icon: IconUsers,      value: "1,200+", label: "Active Users" },
-  { Icon: IconClock,      value: "< 3s",   label: "Avg. Settlement" },
 ];
 
 const TESTIMONIALS = [
@@ -129,20 +123,7 @@ export default function Home() {
 
       {/* ── STATS ── */}
       <section className="border-y border-white/[0.06] py-10 px-4" style={{ background: "rgba(255,255,255,0.015)" }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8">
-          {STATS.map(({ Icon, value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-3 text-center">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)" }}>
-                <Icon className="w-5 h-5 text-teal-400" />
-              </div>
-              <div>
-                <p className="gradient-text font-bold text-3xl leading-none">{value}</p>
-                <p className="text-slate-500 text-xs mt-1.5 uppercase tracking-wider">{label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <LiveStats />
       </section>
 
       {/* ── HOW IT WORKS ── */}
