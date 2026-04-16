@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import InstallPrompt from "@/components/InstallPrompt";
+import OfflineBanner from "@/components/OfflineBanner";
 
 export const metadata: Metadata = {
   title: "CeloTasks — Micro tasks. Instant pay. Onchain reputation.",
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full antialiased" style={{ background: "#0b0f14", color: "#f1f5f9" }}>
         <Providers>
           <ServiceWorkerRegistration />
+          <OfflineBanner />
           <Navbar />
           <main className="min-h-screen pb-16 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
           <BottomNav />
