@@ -2,15 +2,19 @@
 
 import { useAccount } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 import { shortenAddress } from "@/lib/wagmi";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import WalletModal from "@/components/WalletModal";
 
 export default function ProfilePage() {
   const { address } = useAccount();
   const { login, logout, ready, authenticated } = usePrivy();
   const { currentUser, myAcceptedTasks, myCreatedTasks, stats, setMyAddress } = useTaskStore();
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
 
@@ -36,7 +40,12 @@ export default function ProfilePage() {
                 <p className="text-white font-mono text-sm">{authenticated && address ? shortenAddress(address) : "Not connected"}</p>
               </div>
               {authenticated ? (
-                <button onClick={logout} className="outline-btn text-slate-300 text-xs px-3 py-1.5 rounded-xl cursor-pointer">Disconnect</button>
+                <div className="flex gap-2">
+                  <button onClick={() => setWalletOpen(true)} className="gradient-btn text-white text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5">
+                    <IconWallet className="w-3.5 h-3.5" /> Wallet
+                  </button>
+                  <button onClick={() => setConfirmLogout(true)} className="outline-btn text-slate-300 text-xs px-3 py-1.5 rounded-xl cursor-pointer">Disconnect</button>
+                </div>
               ) : (
                 <button onClick={login} disabled={!ready} className="gradient-btn text-white text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
                   <IconWallet className="w-3.5 h-3.5" /> Connect Wallet
@@ -125,6 +134,17 @@ export default function ProfilePage() {
           </div>
         </section>
       </div>
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title="Disconnect wallet?"
+        message="You'll be signed out and your wallet will be disconnected. You can reconnect anytime."
+        confirmLabel="Disconnect"
+        danger
+        onConfirm={() => { setConfirmLogout(false); logout(); }}
+        onCancel={() => setConfirmLogout(false)}
+      />
+      <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
     </div>
   );
 }

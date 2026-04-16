@@ -7,6 +7,8 @@ import { shortenAddress, isMiniPay } from "@/lib/wagmi";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import WalletModal from "@/components/WalletModal";
 
 export default function Navbar() {
   const { login, logout, ready, authenticated } = usePrivy();
@@ -14,6 +16,8 @@ export default function Navbar() {
   const [miniPay, setMiniPay] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const prevAuth = useRef<boolean | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   useEffect(() => { setMiniPay(isMiniPay()); }, []);
 
@@ -24,6 +28,8 @@ export default function Navbar() {
     if (!authenticated && prevAuth.current) addToast("Wallet disconnected", "info");
     prevAuth.current = authenticated;
   }, [authenticated, ready, addToast]);
+
+  function handleLogout() { setConfirmLogout(false); logout(); }
 
   return (
     <>
@@ -42,7 +48,8 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.06] px-2 py-1" style={{ background: "rgba(255,255,255,0.03)" }}>
               {[
-                { href: "/dashboard", label: "Dashboard" },
+                { href: "/", label: "Home" },
+                { href: "/dashboard", label: "Browse" },
                 { href: "/create-task", label: "Create" },
                 { href: "/activity", label: "Activity" },
                 { href: "/profile", label: "Profile" },
@@ -63,10 +70,17 @@ export default function Navbar() {
             )}
 
             {authenticated && address ? (
-              <button onClick={logout}
-                className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
-                {shortenAddress(address)}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setWalletOpen(true)}
+                  className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
+                  {shortenAddress(address)}
+                </button>
+                <button onClick={() => setConfirmLogout(true)}
+                  className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer text-xs px-2 py-2 rounded-xl hover:bg-red-500/10"
+                  title="Disconnect wallet">
+                  ✕
+                </button>
+              </div>
             ) : (
               <button onClick={login} disabled={!ready}
                 className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer disabled:opacity-50">
@@ -76,7 +90,20 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title="Disconnect wallet?"
+        message="You'll be signed out and your wallet will be disconnected. You can reconnect anytime."
+        confirmLabel="Disconnect"
+        danger
+        onConfirm={handleLogout}
+        onCancel={() => setConfirmLogout(false)}
+      />
+
+      <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
     </>
   );
 }
