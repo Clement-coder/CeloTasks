@@ -85,6 +85,7 @@ export default function WalletModal({ open, onClose }: Props) {
                 <span className="text-slate-400 text-base font-normal ml-2">cUSD</span>
               </p>
               {address && <p className="text-slate-500 text-xs font-mono mt-1">{address}</p>}
+              <p className="text-slate-600 text-xs mt-1">To send CELO, use the Withdraw tab.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={() => setTab("fund")}
@@ -120,6 +121,13 @@ export default function WalletModal({ open, onClose }: Props) {
         {/* Withdraw tab */}
         {tab === "withdraw" && (
           <div className="flex flex-col gap-4">
+            <div className="rounded-2xl p-4 border border-amber-500/20 flex gap-3" style={{ background: "rgba(234,179,8,0.06)" }}>
+              <IconArrowUp className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-white text-sm font-semibold mb-1">Send native CELO</p>
+                <p className="text-slate-400 text-xs leading-relaxed">This sends native CELO (not cUSD) to any address on the Celo network.</p>
+              </div>
+            </div>
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-slate-400 text-xs uppercase tracking-wider">Recipient Address</label>
