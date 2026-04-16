@@ -16,6 +16,9 @@ export default function BottomNav() {
   const pathname = usePathname();
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
+  // Don't show on the marketing landing page
+  if (pathname === "/") return null;
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08]"
       style={{ background: "rgba(11,15,20,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
