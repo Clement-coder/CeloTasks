@@ -65,7 +65,26 @@ export default function ActivityPage() {
 
       <div className="glass-card rounded-3xl p-5 sm:p-6 flex flex-col gap-4">
         {filtered.length === 0 && (
-          <p className="text-slate-500 text-sm text-center py-10">No activity for this filter yet.</p>
+          <div className="flex flex-col items-center text-center py-16 gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/[0.08]" style={{ background: "rgba(56,189,248,0.08)" }}>
+              <IconZap className="w-6 h-6 text-sky-400/60" />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-lg">
+                {filter === "all" ? "No activity yet" : `No ${filter} events yet`}
+              </p>
+              <p className="text-slate-500 text-sm mt-1 max-w-sm mx-auto">
+                {filter === "all"
+                  ? "Activity appears here as tasks are created, accepted, submitted, approved, and paid. Start by browsing open tasks."
+                  : `Switch to "All" to see the full feed, or take an action on a task to generate ${filter} events.`}
+              </p>
+            </div>
+            {filter === "all" && (
+              <Link href="/dashboard" className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2">
+                Browse Tasks <IconArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         )}
         {filtered.map((item) => {
           const meta = LABELS[item.type] ?? LABELS.created;
