@@ -112,6 +112,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Deadline</p>
               <p className="text-white">{task.deadline}</p>
+              {task.status !== "paid" && task.status !== "cancelled" && (() => {
+                const diff = new Date(`${task.deadline}T00:00:00`).getTime() - Date.now();
+                const days = Math.ceil(diff / 86400000);
+                const label = days < 0 ? "Overdue" : days === 0 ? "Due today" : `${days}d left`;
+                const urgent = days <= 3;
+                return <p className={`text-xs mt-1 font-semibold ${urgent ? "text-red-400" : "text-slate-500"}`}>{label}</p>;
+              })()}
             </div>
             <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Effort</p>
