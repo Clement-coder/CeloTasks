@@ -67,6 +67,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
     if (form.description.length > 700) nextErrors.description = "Max 700 characters";
     if (!form.reward || Number(form.reward) <= 0) nextErrors.reward = "Enter a valid reward";
     if (!form.deadline) nextErrors.deadline = "Deadline is required";
+    else if (form.deadline < new Date().toISOString().slice(0, 10)) nextErrors.deadline = "Deadline must be today or in the future";
     if (!form.estimatedHours || Number(form.estimatedHours) <= 0) nextErrors.estimatedHours = "Estimate the effort";
     if (deliverables.length === 0) nextErrors.deliverables = "Add at least one deliverable";
     if (!form.submissionGuide.trim()) nextErrors.submissionGuide = "Explain how workers should submit";
@@ -200,7 +201,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
 
           <div>
             <label className="text-xs text-slate-400 uppercase tracking-wider mb-2 block">Deadline</label>
-            <input className={fieldClassName} style={fieldStyle} type="date" value={form.deadline} onChange={(e) => updateField("deadline", e.target.value)} />
+            <input className={fieldClassName} style={fieldStyle} type="date" min={new Date().toISOString().slice(0, 10)} value={form.deadline} onChange={(e) => updateField("deadline", e.target.value)} />
             <p className="text-red-400 text-xs mt-1.5">{errors.deadline}</p>
           </div>
 
