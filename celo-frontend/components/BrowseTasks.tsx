@@ -57,8 +57,7 @@ export default function BrowseTasks({ onToast }: Props) {
 
   const handleAccept = async (id: string) => {
     setLoadingId(id);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    acceptTask(id);
+    await acceptTask(id);
     onToast("Task accepted. It has moved into your work queue.", "success");
     setLoadingId(null);
   };

@@ -1,30 +1,37 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { getSupabase } from "@/utils/supabase/client";
+
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 export const TASK_CATEGORIES = ["Writing", "Design", "Development", "Testing", "Marketing", "Video"] as const;
 export const TASK_DIFFICULTIES = ["Quick", "Standard", "Advanced"] as const;
 export const TASK_CURRENCIES = ["cUSD", "CELO"] as const;
 
-export type TaskCategory = (typeof TASK_CATEGORIES)[number];
+export type TaskCategory   = (typeof TASK_CATEGORIES)[number];
 export type TaskDifficulty = (typeof TASK_DIFFICULTIES)[number];
-export type TaskCurrency = (typeof TASK_CURRENCIES)[number];
-export type TaskStatus = "open" | "in_progress" | "submitted" | "approved" | "paid" | "cancelled";
-export type ActivityType =
-  | "created"
-  | "accepted"
-  | "submitted"
-  | "revision_requested"
-  | "approved"
-  | "paid"
-  | "cancelled";
+export type TaskCurrency   = (typeof TASK_CURRENCIES)[number];
+export type TaskStatus     = "open" | "in_progress" | "submitted" | "approved" | "paid" | "cancelled";
+export type ActivityType   =
+  | "created" | "accepted" | "submitted"
+  | "revision_requested" | "approved" | "paid" | "cancelled";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TaskSubmission {
   proofText: string;
   proofLink: string;
   submittedAt: string;
   attachmentName?: string;
-  attachmentData?: string; // base64 data URL
+  attachmentData?: string;
 }
 
 export interface TaskApplication {
@@ -86,17 +93,18 @@ interface TaskStore {
   activity: ActivityItem[];
   myAddress: string | null;
   currentUser: string;
+  loading: boolean;
   setMyAddress: (addr: string) => void;
-  createTask: (input: CreateTaskInput) => string;
-  acceptTask: (id: string) => void;
-  submitTask: (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => void;
-  requestRevision: (id: string, feedback: string) => void;
-  approveTask: (id: string) => void;
-  releasePayment: (id: string) => void;
-  cancelTask: (id: string) => void;
-  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => void;
-  applyToTask: (id: string, note: string) => void;
-  selectApplicant: (taskId: string, applicant: string) => void;
+  createTask: (input: CreateTaskInput) => Promise<string>;
+  acceptTask: (id: string) => Promise<void>;
+  submitTask: (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => Promise<void>;
+  requestRevision: (id: string, feedback: string) => Promise<void>;
+  approveTask: (id: string) => Promise<void>;
+  releasePayment: (id: string) => Promise<void>;
+  cancelTask: (id: string) => Promise<void>;
+  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => Promise<void>;
+  applyToTask: (id: string, note: string) => Promise<void>;
+  selectApplicant: (taskId: string, applicant: string) => Promise<void>;
   getTask: (id: string) => Task | undefined;
   browseTasks: Task[];
   myCreatedTasks: Task[];
@@ -114,387 +122,275 @@ interface TaskStore {
   };
 }
 
-const STORAGE_KEY = "celotasks_frontend_store_v2";
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const FALLBACK_USER = "0xCelo...Tasks";
 
-const INITIAL_TASKS: Task[] = [
-  {
-    id: "task-101",
-    title: "Write a launch thread for CeloTasks",
-    description: "Create a 10-post launch thread that explains the problem, product, and how MiniPay users can earn from day one.",
-    reward: "14",
-    currency: "cUSD",
-    status: "open",
-    category: "Writing",
-    difficulty: "Standard",
-    creator: "0xNova...Labs",
-    createdAt: "2026-04-13",
-    deadline: "2026-04-20",
-    estimatedHours: "3",
-    deliverables: ["10 short posts", "1 headline hook", "CTA with wallet onboarding"],
-    submissionGuide: "Submit the draft in plain text plus a final polished version.",
-    tags: ["launch", "copywriting", "social"],
-  },
-  {
-    id: "task-102",
-    title: "Record a MiniPay walkthrough video",
-    description: "Create a 90-second vertical demo showing task browsing, acceptance, and payout flow for social promotion.",
-    reward: "22",
-    currency: "cUSD",
-    status: "in_progress",
-    category: "Video",
-    difficulty: "Standard",
-    creator: FALLBACK_USER,
-    acceptor: "0xStudio...Flow",
-    createdAt: "2026-04-12",
-    deadline: "2026-04-18",
-    estimatedHours: "5",
-    deliverables: ["Vertical MP4", "Thumbnail still", "Caption copy"],
-    submissionGuide: "Share an unlisted drive or Loom link with export assets.",
-    tags: ["video", "marketing", "minipay"],
-  },
-  {
-    id: "task-103",
-    title: "QA the wallet connect flow on Android",
-    description: "Test connection, disconnect, reconnection, and error handling on Android devices and document failures clearly.",
-    reward: "9",
-    currency: "CELO",
-    status: "submitted",
-    category: "Testing",
-    difficulty: "Quick",
-    creator: FALLBACK_USER,
-    acceptor: "0xQA...Spark",
-    createdAt: "2026-04-11",
-    deadline: "2026-04-17",
-    estimatedHours: "2",
-    deliverables: ["Bug list", "Screen recording", "Device matrix"],
-    submissionGuide: "Submit a public notion doc or markdown report link.",
-    tags: ["qa", "android", "wallet"],
-    submission: {
-      proofText: "Documented 4 wallet edge cases, including one reconnect issue after app backgrounding.",
-      proofLink: "https://example.com/qa-wallet-report",
-      submittedAt: "2026-04-14T10:45:00.000Z",
-    },
-  },
-  {
-    id: "task-104",
-    title: "Design creator and worker profile cover art",
-    description: "Create two profile header treatments for the app, optimized for mobile first and matching the current brand palette.",
-    reward: "18",
-    currency: "cUSD",
-    status: "approved",
-    category: "Design",
-    difficulty: "Standard",
-    creator: FALLBACK_USER,
-    acceptor: "0xPixel...Mint",
-    createdAt: "2026-04-10",
-    deadline: "2026-04-15",
-    estimatedHours: "4",
-    deliverables: ["2 mobile-ready Figma frames", "Exported PNG previews"],
-    submissionGuide: "Attach Figma link and exported image previews.",
-    tags: ["design", "profile", "mobile"],
-    submission: {
-      proofText: "Delivered two visual directions with updated gradients and tighter mobile spacing.",
-      proofLink: "https://example.com/profile-cover-designs",
-      submittedAt: "2026-04-13T09:20:00.000Z",
-    },
-    approvedAt: "2026-04-14T08:10:00.000Z",
-  },
-  {
-    id: "task-105",
-    title: "Translate onboarding copy to French",
-    description: "Translate the main landing page and dashboard empty states into French, preserving the product tone.",
-    reward: "11",
-    currency: "cUSD",
-    status: "paid",
-    category: "Writing",
-    difficulty: "Quick",
-    creator: "0xOrbit...Team",
-    acceptor: FALLBACK_USER,
-    createdAt: "2026-04-08",
-    deadline: "2026-04-12",
-    estimatedHours: "2",
-    deliverables: ["Localized copy", "Glossary of product terms"],
-    submissionGuide: "Submit translated copy in a shareable doc.",
-    tags: ["translation", "french", "product"],
-    submission: {
-      proofText: "Translated the landing page, CTA buttons, onboarding prompts, and empty-state language.",
-      proofLink: "https://example.com/french-copy",
-      submittedAt: "2026-04-10T15:00:00.000Z",
-    },
-    approvedAt: "2026-04-11T10:00:00.000Z",
-    paidAt: "2026-04-11T10:04:00.000Z",
-  },
-  {
-    id: "task-106",
-    title: "Ship a dashboard stats visual refresh",
-    description: "Polish the dashboard KPI cards with stronger hierarchy, spacing, and more deliberate CTA placement.",
-    reward: "16",
-    currency: "cUSD",
-    status: "in_progress",
-    category: "Design",
-    difficulty: "Advanced",
-    creator: "0xDesign...Ops",
-    acceptor: FALLBACK_USER,
-    createdAt: "2026-04-14",
-    deadline: "2026-04-19",
-    estimatedHours: "6",
-    deliverables: ["Revised dashboard mock", "Design notes", "Spacing tokens"],
-    submissionGuide: "Send a Figma link and 3 screenshots covering mobile and desktop.",
-    tags: ["dashboard", "ui", "design"],
-  },
-];
+/** Map a raw Supabase tasks row → Task */
+function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], sub?: TaskSubmission): Task {
+  return {
+    id:              row.id as string,
+    title:           row.title as string,
+    description:     row.description as string,
+    reward:          String(row.reward),
+    currency:        row.currency as TaskCurrency,
+    status:          row.status as TaskStatus,
+    category:        row.category as TaskCategory,
+    difficulty:      row.difficulty as TaskDifficulty,
+    creator:         row.creator_wallet as string,
+    acceptor:        (row.acceptor_wallet as string) ?? undefined,
+    createdAt:       (row.created_at as string).slice(0, 10),
+    deadline:        row.deadline as string,
+    estimatedHours:  String(row.estimated_hours ?? ""),
+    deliverables:    (row.deliverables as string[]) ?? [],
+    submissionGuide: row.submission_guide as string,
+    tags:            (row.tags as string[]) ?? [],
+    creatorFeedback: (row.creator_feedback as string) ?? undefined,
+    approvedAt:      (row.approved_at as string) ?? undefined,
+    paidAt:          (row.paid_at as string) ?? undefined,
+    applications:    apps,
+    submission:      sub,
+  };
+}
 
-const INITIAL_ACTIVITY: ActivityItem[] = [
-  {
-    id: "activity-1",
-    taskId: "task-105",
-    type: "paid",
-    actor: "0xOrbit...Team",
-    taskTitle: "Translate onboarding copy to French",
-    note: "Released payment after final copy review.",
-    at: "2026-04-11T10:04:00.000Z",
-  },
-  {
-    id: "activity-2",
-    taskId: "task-104",
-    type: "approved",
-    actor: FALLBACK_USER,
-    taskTitle: "Design creator and worker profile cover art",
-    note: "Approved the submitted assets and queued payment.",
-    at: "2026-04-14T08:10:00.000Z",
-  },
-  {
-    id: "activity-3",
-    taskId: "task-103",
-    type: "submitted",
-    actor: "0xQA...Spark",
-    taskTitle: "QA the wallet connect flow on Android",
-    note: "Submitted the QA report and device matrix for review.",
-    at: "2026-04-14T10:45:00.000Z",
-  },
-];
+/** Map a raw Supabase activity row → ActivityItem */
+function rowToActivity(row: Record<string, unknown>): ActivityItem {
+  return {
+    id:        row.id as string,
+    taskId:    row.task_id as string,
+    type:      row.type as ActivityType,
+    actor:     row.actor as string,
+    taskTitle: row.task_title as string,
+    note:      row.note as string,
+    at:        row.at as string,
+  };
+}
+
+async function ensureProfile(wallet: string) {
+  const db = getSupabase();
+  await db.from("profiles").upsert({ wallet: wallet.toLowerCase() }, { onConflict: "wallet" });
+}
+
+async function appendActivity(taskId: string, taskTitle: string, type: ActivityType, actor: string, note: string) {
+  const db = getSupabase();
+  await db.from("activity").insert({ task_id: taskId, task_title: taskTitle, type, actor: actor.toLowerCase(), note });
+}
+
+// ─── Context ─────────────────────────────────────────────────────────────────
 
 const TaskContext = createContext<TaskStore | null>(null);
 
-function sortByNewest(items: { createdAt?: string; at?: string }[]) {
-  return [...items].sort((a, b) => {
-    const aTime = new Date((a.at ?? a.createdAt) || 0).getTime();
-    const bTime = new Date((b.at ?? b.createdAt) || 0).getTime();
-    return bTime - aTime;
-  });
-}
-
-function appendActivity(
-  prev: ActivityItem[],
-  task: Task,
-  type: ActivityType,
-  actor: string,
-  note: string,
-): ActivityItem[] {
-  return sortByNewest([
-    {
-      id: `activity-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-      taskId: task.id,
-      type,
-      actor,
-      taskTitle: task.title,
-      note,
-      at: new Date().toISOString(),
-    },
-    ...prev,
-  ]) as ActivityItem[];
-}
-
 export function TaskProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [activity, setActivity] = useState<ActivityItem[]>(sortByNewest(INITIAL_ACTIVITY) as ActivityItem[]);
-  const [myAddress, setMyAddress] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const [tasks, setTasks]       = useState<Task[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [myAddress, _setMyAddress] = useState<string | null>(null);
+  const [loading, setLoading]   = useState(true);
 
-  useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as { tasks?: Task[]; activity?: ActivityItem[] };
-        if (parsed.tasks?.length) setTasks(parsed.tasks);
-        if (parsed.activity?.length) setActivity(parsed.activity);
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+  const currentUser = myAddress?.toLowerCase() ?? FALLBACK_USER;
+
+  // ── Fetch all data ──────────────────────────────────────────────────────────
+  const fetchAll = useCallback(async () => {
+    const db = getSupabase();
+
+    const [{ data: taskRows }, { data: appRows }, { data: subRows }, { data: actRows }] = await Promise.all([
+      db.from("tasks").select("*").order("created_at", { ascending: false }),
+      db.from("task_applications").select("*").order("applied_at", { ascending: true }),
+      db.from("task_submissions").select("*"),
+      db.from("activity").select("*").order("at", { ascending: false }),
+    ]);
+
+    const appsMap: Record<string, TaskApplication[]> = {};
+    for (const row of (appRows ?? []) as Record<string, unknown>[]) {
+      const tid = row.task_id as string;
+      if (!appsMap[tid]) appsMap[tid] = [];
+      appsMap[tid].push({ applicant: row.applicant as string, note: row.note as string, appliedAt: row.applied_at as string });
     }
-    setHydrated(true);
+
+    const subMap: Record<string, TaskSubmission> = {};
+    for (const row of (subRows ?? []) as Record<string, unknown>[]) {
+      const tid = row.task_id as string;
+      subMap[tid] = {
+        proofText:      row.proof_text as string,
+        proofLink:      row.proof_link as string,
+        submittedAt:    row.submitted_at as string,
+        attachmentName: (row.attachment_name as string) ?? undefined,
+        attachmentData: (row.attachment_url as string) ?? undefined,
+      };
+    }
+
+    setTasks((taskRows ?? []).map((r: Record<string, unknown>) => rowToTask(r, appsMap[r.id as string] ?? [], subMap[r.id as string])));
+    setActivity((actRows ?? []).map((r: Record<string, unknown>) => rowToActivity(r)));
+    setLoading(false);
   }, []);
 
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // ── Realtime subscriptions ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, activity }));
-  }, [tasks, activity, hydrated]);
+    const db = getSupabase();
+    const channel = db
+      .channel("celotasks-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_applications" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "activity" }, () => fetchAll())
+      .subscribe();
+    return () => { db.removeChannel(channel); };
+  }, [fetchAll]);
 
-  const currentUser = myAddress ?? FALLBACK_USER;
+  // ── setMyAddress — also upsert profile ─────────────────────────────────────
+  const setMyAddress = useCallback((addr: string) => {
+    _setMyAddress(addr.toLowerCase());
+    ensureProfile(addr.toLowerCase());
+  }, []);
 
-  const createTask = (input: CreateTaskInput) => {
-    const id = `task-${Date.now()}`;
-    const task: Task = {
-      id,
-      title: input.title,
-      description: input.description,
-      reward: input.reward,
-      currency: input.currency,
-      status: "open",
-      category: input.category,
-      difficulty: input.difficulty,
-      creator: currentUser,
-      createdAt: new Date().toISOString().slice(0, 10),
-      deadline: input.deadline,
-      estimatedHours: input.estimatedHours,
-      deliverables: input.deliverables,
-      submissionGuide: input.submissionGuide,
-      tags: input.tags,
-    };
-    setTasks((prev) => sortByNewest([task, ...prev]) as Task[]);
-    setActivity((prev) => appendActivity(prev, task, "created", currentUser, "Published a new task and funded the mock escrow."));
-    return id;
-  };
+  // ── Actions ─────────────────────────────────────────────────────────────────
 
-  const acceptTask = (id: string) => {
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task || task.status !== "open") return prev;
-      const updated = { ...task, status: "in_progress" as const, acceptor: currentUser };
-      setActivity((a) => appendActivity(a, updated, "accepted", currentUser, "Accepted the task and started work."));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const createTask = useCallback(async (input: CreateTaskInput): Promise<string> => {
+    const db = getSupabase();
+    await ensureProfile(currentUser);
+    const { data, error } = await db.from("tasks").insert({
+      title:            input.title,
+      description:      input.description,
+      reward:           Number(input.reward),
+      currency:         input.currency,
+      category:         input.category,
+      difficulty:       input.difficulty,
+      creator_wallet:   currentUser,
+      deadline:         input.deadline,
+      estimated_hours:  Number(input.estimatedHours),
+      deliverables:     input.deliverables,
+      submission_guide: input.submissionGuide,
+      tags:             input.tags,
+      status:           "open",
+    }).select().single();
+    if (error) throw error;
+    await appendActivity(data.id, input.title, "created", currentUser, "Published a new task.");
+    return data.id as string;
+  }, [currentUser]);
 
-  const submitTask = (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => {
-    const now = new Date().toISOString();
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task) return prev;
-      const updated = { ...task, status: "submitted" as const, creatorFeedback: undefined, submission: { proofText: payload.proofText, proofLink: payload.proofLink, submittedAt: now, attachmentName: payload.attachmentName, attachmentData: payload.attachmentData } };
-      setActivity((a) => appendActivity(a, updated, "submitted", currentUser, "Submitted work proof for creator review."));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const acceptTask = useCallback(async (id: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await ensureProfile(currentUser);
+    await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
+    await appendActivity(id, task.title, "accepted", currentUser, "Accepted the task and started work.");
+  }, [tasks, currentUser]);
 
-  const requestRevision = (id: string, feedback: string) => {
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task) return prev;
-      const updated = { ...task, status: "in_progress" as const, creatorFeedback: feedback };
-      setActivity((a) => appendActivity(a, updated, "revision_requested", currentUser, feedback));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const submitTask = useCallback(async (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await db.from("task_submissions").upsert({
+      task_id:         id,
+      worker_wallet:   currentUser,
+      proof_text:      payload.proofText,
+      proof_link:      payload.proofLink,
+      attachment_name: payload.attachmentName ?? null,
+      attachment_url:  payload.attachmentData ?? null,
+      submitted_at:    new Date().toISOString(),
+    }, { onConflict: "task_id" });
+    await db.from("tasks").update({ status: "submitted", creator_feedback: null }).eq("id", id);
+    await appendActivity(id, task.title, "submitted", currentUser, "Submitted work proof for creator review.");
+  }, [tasks, currentUser]);
 
-  const approveTask = (id: string) => {
-    const approvedAt = new Date().toISOString();
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task) return prev;
-      const updated = { ...task, status: "approved" as const, approvedAt, creatorFeedback: undefined };
-      setActivity((a) => appendActivity(a, updated, "approved", currentUser, "Approved the submission and queued payment."));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const requestRevision = useCallback(async (id: string, feedback: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback }).eq("id", id);
+    await appendActivity(id, task.title, "revision_requested", currentUser, feedback);
+  }, [tasks, currentUser]);
 
-  const releasePayment = (id: string) => {
-    const paidAt = new Date().toISOString();
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task) return prev;
-      const updated = { ...task, status: "paid" as const, paidAt };
-      setActivity((a) => appendActivity(a, updated, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const approveTask = useCallback(async (id: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await db.from("tasks").update({ status: "approved", approved_at: new Date().toISOString(), creator_feedback: null }).eq("id", id);
+    await appendActivity(id, task.title, "approved", currentUser, "Approved the submission and queued payment.");
+  }, [tasks, currentUser]);
 
-  const getTask = (id: string) => tasks.find((task) => task.id === id);
+  const releasePayment = useCallback(async (id: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    await appendActivity(id, task.title, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`);
+  }, [tasks, currentUser]);
 
-  const cancelTask = (id: string) => {
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task || !["open", "in_progress"].includes(task.status) || task.creator !== currentUser) return prev;
-      const updated = { ...task, status: "cancelled" as const };
-      setActivity((a) => appendActivity(a, updated, "cancelled", currentUser, "Task cancelled by creator."));
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-  };
+  const cancelTask = useCallback(async (id: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    await db.from("tasks").update({ status: "cancelled" }).eq("id", id);
+    await appendActivity(id, task.title, "cancelled", currentUser, "Task cancelled by creator.");
+  }, [tasks, currentUser]);
 
-  const editTask = (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => {
-    setTasks((prev) => prev.map((task) => task.id === id && task.status === "open" && task.creator === currentUser ? { ...task, ...updates } : task));
-  };
+  const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>): Promise<void> => {
+    const db = getSupabase();
+    const patch: Record<string, unknown> = {};
+    if (updates.title)           patch.title            = updates.title;
+    if (updates.description)     patch.description      = updates.description;
+    if (updates.reward)          patch.reward           = Number(updates.reward);
+    if (updates.deadline)        patch.deadline         = updates.deadline;
+    if (updates.estimatedHours)  patch.estimated_hours  = Number(updates.estimatedHours);
+    if (updates.submissionGuide) patch.submission_guide = updates.submissionGuide;
+    if (updates.tags)            patch.tags             = updates.tags;
+    await db.from("tasks").update(patch).eq("id", id);
+  }, []);
 
-  const applyToTask = (id: string, note: string) => {
-    setTasks((prev) => prev.map((task) => {
-      if (task.id !== id || task.status !== "open") return task;
-      const already = task.applications?.some((a) => a.applicant === currentUser);
-      if (already) return task;
-      return { ...task, applications: [...(task.applications ?? []), { applicant: currentUser, note, appliedAt: new Date().toISOString() }] };
-    }));
-  };
+  const applyToTask = useCallback(async (id: string, note: string): Promise<void> => {
+    const db = getSupabase();
+    await ensureProfile(currentUser);
+    await db.from("task_applications").upsert(
+      { task_id: id, applicant: currentUser, note },
+      { onConflict: "task_id,applicant" }
+    );
+  }, [currentUser]);
 
-  const selectApplicant = (taskId: string, applicant: string) => {
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === taskId);
-      if (!task || task.status !== "open" || task.creator !== currentUser) return prev;
-      const updated = { ...task, status: "in_progress" as const, acceptor: applicant };
-      setActivity((a) => appendActivity(a, updated, "accepted", applicant, "Selected by creator to work on this task."));
-      return prev.map((t) => (t.id === taskId ? updated : t));
-    });
-  };
+  const selectApplicant = useCallback(async (taskId: string, applicant: string): Promise<void> => {
+    const db = getSupabase();
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant }).eq("id", taskId);
+    await appendActivity(taskId, task.title, "accepted", applicant, "Selected by creator to work on this task.");
+  }, [tasks]);
 
-  const browseTasks = tasks.filter((task) => task.status === "open" && task.creator !== currentUser);
-  const myCreatedTasks = sortByNewest(tasks.filter((task) => task.creator === currentUser)) as Task[];
-  const myAcceptedTasks = sortByNewest(tasks.filter((task) => task.acceptor === currentUser)) as Task[];
-  const reviewQueue = sortByNewest(tasks.filter((task) => task.creator === currentUser && task.status === "submitted")) as Task[];
-  const paymentQueue = sortByNewest(tasks.filter((task) => task.creator === currentUser && task.status === "approved")) as Task[];
+  const getTask = useCallback((id: string) => tasks.find((t) => t.id === id), [tasks]);
 
-  const completedAsWorker = tasks.filter((task) => task.acceptor === currentUser && task.status === "paid");
-  const paidOut = tasks.filter((task) => task.creator === currentUser && task.status === "paid");
-  const earnings = completedAsWorker.reduce((sum, task) => sum + Number(task.reward), 0);
-  const spend = paidOut.reduce((sum, task) => sum + Number(task.reward), 0);
-  const resolved = myAcceptedTasks.filter((task) => task.status === "paid");
+  // ── Derived state ────────────────────────────────────────────────────────────
+
+  const browseTasks     = tasks.filter((t) => t.status === "open" && t.creator !== currentUser);
+  const myCreatedTasks  = tasks.filter((t) => t.creator === currentUser);
+  const myAcceptedTasks = tasks.filter((t) => t.acceptor === currentUser);
+  const reviewQueue     = tasks.filter((t) => t.creator === currentUser && t.status === "submitted");
+  const paymentQueue    = tasks.filter((t) => t.creator === currentUser && t.status === "approved");
+
+  const earnings    = myAcceptedTasks.filter((t) => t.status === "paid").reduce((s, t) => s + Number(t.reward), 0);
+  const spend       = myCreatedTasks.filter((t) => t.status === "paid").reduce((s, t) => s + Number(t.reward), 0);
+  const resolved    = myAcceptedTasks.filter((t) => t.status === "paid");
   const successRate = myAcceptedTasks.length ? Math.round((resolved.length / myAcceptedTasks.length) * 100) : 100;
 
   const stats = {
-    openTasks: tasks.filter((task) => task.status === "open").length,
-    inProgressTasks: tasks.filter((task) => task.status === "in_progress").length,
-    reviewQueue: reviewQueue.length,
-    readyForPayout: paymentQueue.length,
+    openTasks:       tasks.filter((t) => t.status === "open").length,
+    inProgressTasks: tasks.filter((t) => t.status === "in_progress").length,
+    reviewQueue:     reviewQueue.length,
+    readyForPayout:  paymentQueue.length,
     earnings,
     spend,
     successRate,
   };
 
   return (
-    <TaskContext.Provider
-      value={{
-        tasks,
-        activity,
-        myAddress,
-        currentUser,
-        setMyAddress,
-        createTask,
-        acceptTask,
-        submitTask,
-        requestRevision,
-        approveTask,
-        releasePayment,
-        cancelTask,
-        editTask,
-        applyToTask,
-        selectApplicant,
-        getTask,
-        browseTasks,
-        myCreatedTasks,
-        myAcceptedTasks,
-        reviewQueue,
-        paymentQueue,
-        stats,
-      }}
-    >
+    <TaskContext.Provider value={{
+      tasks, activity, myAddress, currentUser, loading,
+      setMyAddress, createTask, acceptTask, submitTask,
+      requestRevision, approveTask, releasePayment, cancelTask,
+      editTask, applyToTask, selectApplicant, getTask,
+      browseTasks, myCreatedTasks, myAcceptedTasks,
+      reviewQueue, paymentQueue, stats,
+    }}>
       {children}
     </TaskContext.Provider>
   );

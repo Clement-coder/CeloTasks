@@ -71,10 +71,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const isCreator = task.creator === currentUser;
   const isWorker = task.acceptor === currentUser;
 
-  const runAction = async (fn: () => void, message: string) => {
+  const runAction = async (fn: () => Promise<void>, message: string) => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    fn();
+    await fn();
     addToast(message, "success");
     setLoading(false);
   };
@@ -210,7 +209,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <textarea value={applyNote} onChange={(e) => setApplyNote(e.target.value)} placeholder="Why are you a good fit? (optional)"
                     className="w-full min-h-20 px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-                  <button disabled={loading} onClick={() => { applyToTask(task.id, applyNote.trim()); addToast("Application submitted!", "success"); }}
+                  <button disabled={loading} onClick={async () => { await applyToTask(task.id, applyNote.trim()); addToast("Application submitted!", "success"); }}
                     className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2">
                     <IconZap className="w-4 h-4" /> Apply for Task
                   </button>
@@ -225,7 +224,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <div key={app.applicant} className="rounded-2xl p-4 border border-white/[0.08] flex flex-col gap-2" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-white font-mono text-xs">{app.applicant}</p>
                     {app.note && <p className="text-slate-400 text-sm">{app.note}</p>}
-                    <button onClick={() => { selectApplicant(task.id, app.applicant); addToast("Worker selected!", "success"); }}
+                    <button onClick={async () => { await selectApplicant(task.id, app.applicant); addToast("Worker selected!", "success"); }}
                       className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer self-start">
                       Select Worker
                     </button>
@@ -377,7 +376,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => { editTask(task.id, { title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline }); setEditing(false); addToast("Task updated.", "success"); }}
+                  <button onClick={async () => { await editTask(task.id, { title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline }); setEditing(false); addToast("Task updated.", "success"); }}
                     className="gradient-btn text-white font-semibold px-4 py-2.5 rounded-2xl cursor-pointer text-sm flex-1">Save</button>
                   <button onClick={() => setEditing(false)} className="outline-btn text-slate-300 px-4 py-2.5 rounded-2xl cursor-pointer text-sm">Cancel</button>
                 </div>

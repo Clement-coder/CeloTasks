@@ -79,8 +79,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
 
     setErrors({});
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const id = createTask({
+    const id = await createTask({
       title: form.title.trim(),
       description: form.description.trim(),
       reward: form.reward,
