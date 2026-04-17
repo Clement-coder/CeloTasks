@@ -84,7 +84,7 @@ export default function WalletModal({ open, onClose }: Props) {
                 {isLoading ? <span className="skeleton inline-block w-24 h-8 rounded-lg" /> : `${balance ?? "0.0000"}`}
                 <span className="text-slate-400 text-sm font-normal ml-2">cUSD</span>
               </p>
-              {address && <p className="text-slate-500 text-xs font-mono mt-1 break-all">{address}</p>}
+              {address && <p className="text-slate-500 text-xs font-mono mt-1">{address.slice(0, 6)}...{address.slice(-6)}</p>}
               <p className="text-slate-600 text-xs mt-1">To send CELO, use the Withdraw tab.</p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">

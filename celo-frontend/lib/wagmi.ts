@@ -27,4 +27,4 @@ export const isMiniPay = (): boolean => {
 };
 
 export const shortenAddress = (addr: string) =>
-  `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  `${addr.slice(0, 6)}...${addr.slice(-6)}`;
