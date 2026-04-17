@@ -62,111 +62,95 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-        <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="glass-card rounded-2xl p-3 sm:p-5 flex gap-2 sm:gap-4 items-start">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)" }}>
-            <IconWallet className="w-5 h-5 text-teal-400" />
+            <IconWallet className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Wallet</p>
-            <p className="text-white font-semibold text-sm font-mono">{shortenAddress(address!)}</p>
-            <p className="text-slate-600 text-xs mt-0.5 truncate">{address}</p>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Wallet</p>
+            <p className="text-white font-semibold text-xs sm:text-sm font-mono truncate">{shortenAddress(address!)}</p>
+            <p className="text-slate-600 text-[10px] mt-0.5 truncate hidden sm:block">{address}</p>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        <div className="glass-card rounded-2xl p-3 sm:p-5 flex gap-2 sm:gap-4 items-start">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
-            <IconTrendingUp className="w-5 h-5 text-green-400" />
+            <IconTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
           </div>
           <div>
-            <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Balance</p>
-            <p className="gradient-text font-bold text-xl leading-none">
-              {balance ? `${(Number(balance.value) / 1e18).toFixed(4)}` : "—"}
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Balance</p>
+            <p className="gradient-text font-bold text-base sm:text-xl leading-none">
+              {balance ? `${(Number(balance.value) / 1e18).toFixed(2)}` : "—"}
             </p>
-            <p className="text-slate-500 text-xs mt-1">{balance?.symbol ?? "CELO"} · Mainnet</p>
-            {cusdBalance && <p className="text-slate-400 text-xs mt-0.5">{cusdBalance} <span className="text-slate-600">cUSD</span></p>}
+            <p className="text-slate-500 text-[10px] sm:text-xs mt-0.5">{balance?.symbol ?? "CELO"}</p>
+            {cusdBalance && <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{cusdBalance} <span className="text-slate-600">cUSD</span></p>}
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        <div className="glass-card rounded-2xl p-3 sm:p-5 flex gap-2 sm:gap-4 items-start">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(234,179,8,0.1)", border: "1px solid rgba(234,179,8,0.2)" }}>
-            <IconStar className="w-5 h-5 text-yellow-400" />
+            <IconStar className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
           </div>
-          <div className="flex-1">
-            <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Reputation</p>
-            <div className="flex items-center gap-2">
-              <span className="gradient-text font-bold text-xl leading-none">{stats.successRate}%</span>
-              <span className="text-xs px-2 py-0.5 rounded-full border border-teal-500/30 text-teal-400">Success rate</span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+          <div className="flex-1 min-w-0">
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Reputation</p>
+            <span className="gradient-text font-bold text-base sm:text-xl leading-none">{stats.successRate}%</span>
+            <div className="mt-1.5 h-1 sm:h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${stats.successRate}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e)" }} />
             </div>
-            <div className="flex gap-3 mt-2 text-xs text-slate-500">
+            <div className="flex gap-2 mt-1.5 text-[10px] sm:text-xs text-slate-500 flex-wrap">
               <span><span className="text-white font-medium">{myAcceptedTasks.length}</span> assigned</span>
-              <span><span className="text-white font-medium">{reviewQueue.length}</span> in review</span>
-              <span><span className="text-fuchsia-300 font-medium">{paymentQueue.length}</span> ready to pay</span>
+              <span><span className="text-fuchsia-300 font-medium">{paymentQueue.length}</span> to pay</span>
             </div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        <div className="glass-card rounded-2xl p-3 sm:p-5 flex gap-2 sm:gap-4 items-start">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(217,70,239,0.1)", border: "1px solid rgba(217,70,239,0.2)" }}>
-            <IconCoin className="w-5 h-5 text-fuchsia-300" />
+            <IconCoin className="w-4 h-4 sm:w-5 sm:h-5 text-fuchsia-300" />
           </div>
           <div className="flex-1">
-            <p className="text-slate-400 text-xs mb-1 uppercase tracking-wider">Frontend Ops</p>
-            <div className="grid grid-cols-2 gap-3 text-xs text-slate-400">
-              <div>
-                <p className="text-white text-lg font-semibold">{stats.openTasks}</p>
-                <p>Open tasks</p>
-              </div>
-              <div>
-                <p className="text-white text-lg font-semibold">{stats.inProgressTasks}</p>
-                <p>Active work</p>
-              </div>
-              <div>
-                <p className="text-white text-lg font-semibold">{stats.reviewQueue}</p>
-                <p>Need review</p>
-              </div>
-              <div>
-                <p className="text-white text-lg font-semibold">{stats.readyForPayout}</p>
-                <p>Need payout</p>
-              </div>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-1 uppercase tracking-wider">Ops</p>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-3 text-[10px] sm:text-xs text-slate-400">
+              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.openTasks}</p><p>Open</p></div>
+              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.inProgressTasks}</p><p>Active</p></div>
+              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.reviewQueue}</p><p>Review</p></div>
+              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.readyForPayout}</p><p>Payout</p></div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Link href="/create-task" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
-          <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Creator Flow</p>
-          <h3 className="text-white text-xl font-semibold">Post a structured task brief</h3>
-          <p className="text-slate-400 text-sm mt-2">Set reward, deadline, deliverables, and review instructions with the full frontend composer.</p>
-          <span className="text-teal-300 text-sm mt-4 inline-flex items-center gap-1.5">Open composer <IconArrowRight className="w-4 h-4" /></span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <Link href="/create-task" className="glass-card rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors">
+          <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5">Creator Flow</p>
+          <h3 className="text-white text-base sm:text-xl font-semibold">Post a structured task brief</h3>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5">Set reward, deadline, deliverables, and review instructions.</p>
+          <span className="text-teal-300 text-xs sm:text-sm mt-3 inline-flex items-center gap-1.5">Open composer <IconArrowRight className="w-3.5 h-3.5" /></span>
         </Link>
-        <Link href="/activity" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
-          <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Operations</p>
-          <h3 className="text-white text-xl font-semibold">Track all workflow events</h3>
-          <p className="text-slate-400 text-sm mt-2">Watch mock activity for publish, accept, submit, approve, and payout events in one place.</p>
-          <span className="text-sky-300 text-sm mt-4 inline-flex items-center gap-1.5">View activity <IconArrowRight className="w-4 h-4" /></span>
+        <Link href="/activity" className="glass-card rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors">
+          <p className="text-sky-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5">Operations</p>
+          <h3 className="text-white text-base sm:text-xl font-semibold">Track all workflow events</h3>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5">Watch activity for publish, accept, submit, approve, and payout.</p>
+          <span className="text-sky-300 text-xs sm:text-sm mt-3 inline-flex items-center gap-1.5">View activity <IconArrowRight className="w-3.5 h-3.5" /></span>
         </Link>
-        <Link href="/profile" className="glass-card rounded-3xl p-5 hover:border-white/20 transition-colors">
-          <p className="text-fuchsia-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Reputation</p>
-          <h3 className="text-white text-xl font-semibold">See the worker and creator profile</h3>
-          <p className="text-slate-400 text-sm mt-2">Earnings, spend, task mix, reliability, and delivery history are all surfaced on the frontend.</p>
-          <span className="text-fuchsia-300 text-sm mt-4 inline-flex items-center gap-1.5">Open profile <IconArrowRight className="w-4 h-4" /></span>
+        <Link href="/profile" className="glass-card rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors">
+          <p className="text-fuchsia-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5">Reputation</p>
+          <h3 className="text-white text-base sm:text-xl font-semibold">Worker and creator profile</h3>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5">Earnings, spend, task mix, reliability, and delivery history.</p>
+          <span className="text-fuchsia-300 text-xs sm:text-sm mt-3 inline-flex items-center gap-1.5">Open profile <IconArrowRight className="w-3.5 h-3.5" /></span>
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="flex gap-1 p-1 rounded-xl w-full sm:w-fit" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
         {(["browse", "my"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+            className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
               tab === t ? "gradient-btn text-white" : "text-slate-400 hover:text-white"
             }`}>
             {t === "browse" ? "Browse Tasks" : "My Tasks"}

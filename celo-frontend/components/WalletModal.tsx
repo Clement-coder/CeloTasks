@@ -55,10 +55,10 @@ export default function WalletModal({ open, onClose }: Props) {
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="glass-card w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 flex flex-col gap-5 fade-up">
+      <div className="glass-card w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-4 fade-up">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-bold text-lg">Wallet</h2>
+          <h2 className="text-white font-bold text-base sm:text-lg">Wallet</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors cursor-pointer">
             <IconX className="w-5 h-5" />
           </button>
@@ -68,33 +68,33 @@ export default function WalletModal({ open, onClose }: Props) {
         <div className="flex gap-1 rounded-xl p-1 border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.03)" }}>
           {tabs.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${tab === t.id ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
+              className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${tab === t.id ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
               style={tab === t.id ? { background: "linear-gradient(135deg,#14b8a6,#22c55e,#eab308)" } : {}}>
-              {t.icon}{t.label}
+              {t.icon}<span className="hidden xs:inline">{t.label}</span>
             </button>
           ))}
         </div>
 
         {/* Balance tab */}
         {tab === "balance" && (
-          <div className="flex flex-col gap-4">
-            <div className="rounded-2xl p-5 border border-white/[0.08] flex flex-col gap-1" style={{ background: "rgba(255,255,255,0.03)" }}>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-2xl p-4 border border-white/[0.08] flex flex-col gap-1" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-400 text-xs uppercase tracking-wider">cUSD Balance</p>
-              <p className="text-white text-3xl font-bold">
+              <p className="text-white text-2xl sm:text-3xl font-bold">
                 {isLoading ? <span className="skeleton inline-block w-24 h-8 rounded-lg" /> : `${balance ?? "0.0000"}`}
-                <span className="text-slate-400 text-base font-normal ml-2">cUSD</span>
+                <span className="text-slate-400 text-sm font-normal ml-2">cUSD</span>
               </p>
-              {address && <p className="text-slate-500 text-xs font-mono mt-1">{address}</p>}
+              {address && <p className="text-slate-500 text-xs font-mono mt-1 break-all">{address}</p>}
               <p className="text-slate-600 text-xs mt-1">To send CELO, use the Withdraw tab.</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <button onClick={() => setTab("fund")}
-                className="gradient-btn flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-semibold cursor-pointer">
-                <IconArrowDown className="w-4 h-4" /> Add Funds
+                className="gradient-btn flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold cursor-pointer">
+                <IconArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add Funds
               </button>
               <button onClick={() => setTab("withdraw")}
-                className="outline-btn flex items-center justify-center gap-2 py-3 rounded-xl text-slate-300 text-sm font-semibold cursor-pointer">
-                <IconArrowUp className="w-4 h-4" /> Withdraw
+                className="outline-btn flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-slate-300 text-xs sm:text-sm font-semibold cursor-pointer">
+                <IconArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Withdraw
               </button>
             </div>
           </div>
