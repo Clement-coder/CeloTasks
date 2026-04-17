@@ -36,11 +36,11 @@
 
 ## What is CeloTasks?
 
-CeloTasks is a **decentralized micro-task marketplace** on the Celo blockchain. Post a task with a cUSD reward, complete it, get paid — instantly, trustlessly, onchain.
+CeloTasks is a decentralized micro-task marketplace on the Celo blockchain. Post a task with a cUSD reward, complete it, get paid — instantly, trustlessly, onchain.
 
 No middlemen. No waiting. No banks.
 
-Built mobile-first for **MiniPay** users across Africa and beyond. Earn real money from your phone in minutes.
+Built mobile-first for MiniPay users across Africa and beyond. Earn real money from your phone in minutes.
 
 ---
 
@@ -58,8 +58,8 @@ Built mobile-first for **MiniPay** users across Africa and beyond. Earn real mon
 
 **For workers**
 - Browse open tasks filtered by category, reward, and deadline
-- Apply to tasks and submit your work directly onchain
-- Get paid in cUSD the moment your submission is approved — under 3 seconds
+- Apply to tasks and submit work directly onchain
+- Get paid in cUSD the moment a submission is approved — under 3 seconds
 - Build a permanent, verifiable reputation score with every completed task
 
 **For task posters**
@@ -68,11 +68,11 @@ Built mobile-first for **MiniPay** users across Africa and beyond. Earn real mon
 - Payment is released automatically on approval — no manual transfers
 
 **Platform**
-- 🔎 Global search — find tasks by title or tag from the navbar
-- 📊 Activity feed — full history of every action and payment
-- 💼 Wallet modal — live cUSD balance, MoonPay on-ramp, CELO send
-- 📲 PWA — install as a native app, works offline
-- 🔔 Live stats — real-time tasks posted, completed, and total paid out
+- Global search — find tasks by title or tag from the navbar
+- Activity feed — full history of every action and payment
+- Wallet modal — live cUSD balance, MoonPay on-ramp, CELO send
+- PWA — installable as a native app, works offline
+- Live stats — real-time tasks posted, completed, and total paid out
 
 ---
 
@@ -191,10 +191,10 @@ celo-frontend/
 
 ## Wallet
 
-- Connect via **MiniPay**, **MetaMask**, or **Privy embedded wallet**
-- Live **cUSD balance** fetched directly from Celo
-- **Add funds** via MoonPay — Visa, Mastercard, Apple Pay, bank transfer
-- **Send CELO** to any address on the Celo network
+- Connect via MiniPay, MetaMask, or Privy embedded wallet
+- Live cUSD balance fetched directly from Celo
+- Add funds via MoonPay — Visa, Mastercard, Apple Pay, bank transfer
+- Send CELO to any address on the Celo network
 
 ---
 
