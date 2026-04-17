@@ -55,7 +55,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Tasks Created", value: myCreatedTasks.length, icon: <IconPlus className="w-5 h-5 text-teal-400" /> },
           { label: "Tasks Worked", value: myAcceptedTasks.length, icon: <IconCheck className="w-5 h-5 text-green-300" /> },
