@@ -24,6 +24,7 @@ export default function BrowseTasks({ onToast }: Props) {
   const [sort, setSort] = useState("Newest");
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const PAGE_SIZE = 6;
 
   useEffect(() => {
@@ -64,88 +65,83 @@ export default function BrowseTasks({ onToast }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="glass-card rounded-3xl p-5 sm:p-6 flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      <div className="glass-card rounded-3xl p-4 sm:p-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Discover Work</p>
-            <h2 className="text-xl sm:text-2xl font-bold text-white">Open tasks ready for pickup</h2>
+            <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-1">Discover Work</p>
+            <h2 className="text-base sm:text-2xl font-bold text-white">Open tasks ready for pickup</h2>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <IconPlus className="w-3.5 h-3.5 text-teal-400" />
-            {filtered.length} matching tasks
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">{filtered.length} tasks</span>
+            <button
+              onClick={() => setFiltersOpen((v) => !v)}
+              className="outline-btn text-slate-400 text-xs px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 sm:hidden"
+            >
+              {filtersOpen ? "Hide" : "Filters"}
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-3">
-          <div className="relative flex-1">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search by title, description, or tags"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-            />
+        <div className={`flex flex-col gap-3 ${filtersOpen ? "flex" : "hidden sm:flex"}`}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by title, description, or tags"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                placeholder="Min $"
+                value={minReward}
+                onChange={(e) => setMinReward(e.target.value)}
+                className="w-20 px-3 py-2.5 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              />
+              <input
+                type="number"
+                placeholder="Max $"
+                value={maxReward}
+                onChange={(e) => setMaxReward(e.target.value)}
+                className="w-20 px-3 py-2.5 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="px-3 py-2.5 rounded-2xl text-sm text-slate-300 focus:outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                {SORTS.map((item) => (
+                  <option key={item} value={item} style={{ background: "#0b0f14" }}>{item}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="Min $"
-              value={minReward}
-              onChange={(e) => setMinReward(e.target.value)}
-              className="w-20 px-3 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-            />
-            <input
-              type="number"
-              placeholder="Max $"
-              value={maxReward}
-              onChange={(e) => setMaxReward(e.target.value)}
-              className="w-20 px-3 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-            />
-          </div>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-3 py-3 rounded-2xl text-sm text-slate-300 focus:outline-none"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-          >
-            {SORTS.map((item) => (
-              <option key={item} value={item} style={{ background: "#0b0f14" }}>
-                {item}
-              </option>
+
+          <div className="flex gap-2 flex-wrap">
+            {["All", ...TASK_CATEGORIES].map((item) => (
+              <button key={item} onClick={() => setCategory(item)}
+                className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                  category === item ? "border-teal-500/50 text-teal-400 bg-teal-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
+                }`}>{item}</button>
             ))}
-          </select>
-        </div>
+          </div>
 
-        <div className="flex gap-2 flex-wrap">
-          {["All", ...TASK_CATEGORIES].map((item) => (
-            <button
-              key={item}
-              onClick={() => setCategory(item)}
-              className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                category === item ? "border-teal-500/50 text-teal-400 bg-teal-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          {["All", ...TASK_DIFFICULTIES].map((item) => (
-            <button
-              key={item}
-              onClick={() => setDifficulty(item)}
-              className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                difficulty === item ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
+          <div className="flex gap-2 flex-wrap">
+            {["All", ...TASK_DIFFICULTIES].map((item) => (
+              <button key={item} onClick={() => setDifficulty(item)}
+                className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                  difficulty === item ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
+                }`}>{item}</button>
+            ))}
+          </div>
         </div>
       </div>
 
