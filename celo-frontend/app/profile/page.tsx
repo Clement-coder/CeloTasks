@@ -26,13 +26,13 @@ export default function ProfilePage() {
   const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-6">
-      <section className="rounded-[2rem] p-8 sm:p-10 border border-white/[0.08] relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(20,184,166,0.18), rgba(34,197,94,0.08), rgba(217,70,239,0.08))" }}>
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
+      <section className="rounded-[2rem] p-5 sm:p-10 border border-white/[0.08] relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(20,184,166,0.18), rgba(34,197,94,0.08), rgba(217,70,239,0.08))" }}>
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 30%)" }} />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end gap-6 justify-between">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end gap-4 sm:gap-6 justify-between">
           <div>
-            <p className="text-teal-300 text-xs uppercase tracking-[0.2em] font-semibold mb-3">Profile</p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">Your reputation &amp; history</h1>
+            <p className="text-teal-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Profile</p>
+            <h1 className="text-2xl sm:text-5xl font-bold text-white leading-tight">Your reputation &amp; history</h1>
           </div>
             <div className="rounded-3xl px-5 py-4 border border-white/[0.08] flex flex-col gap-3" style={{ background: "rgba(11,15,20,0.35)" }}>
               <div>
@@ -55,7 +55,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Tasks Created", value: myCreatedTasks.length, icon: <IconPlus className="w-5 h-5 text-teal-400" /> },
           { label: "Tasks Worked", value: myAcceptedTasks.length, icon: <IconCheck className="w-5 h-5 text-green-300" /> },

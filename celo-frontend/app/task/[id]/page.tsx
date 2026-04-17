@@ -80,7 +80,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
       <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm flex items-center gap-1.5 transition-colors w-fit">
         <IconArrowRight className="w-4 h-4 rotate-180" /> Back to Dashboard
       </Link>
@@ -94,7 +94,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <span className="text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-slate-400">{task.category}</span>
                 <span className="text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-slate-500">{task.difficulty}</span>
               </div>
-              <h1 className="text-3xl font-bold text-white leading-tight">{task.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">{task.title}</h1>
             </div>
 
             <div className="rounded-2xl px-4 py-3 border border-teal-500/15" style={{ background: "rgba(20,184,166,0.08)" }}>

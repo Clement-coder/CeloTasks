@@ -110,7 +110,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
       <form onSubmit={handleSubmit} className="glass-card rounded-3xl p-6 sm:p-8 flex flex-col gap-6">
         <div>
           <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Create Task</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">Brief the work clearly, then publish.</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight">Brief the work clearly, then publish.</h1>
           <p className="text-slate-400 mt-3 max-w-2xl">
             This frontend stays fully mock for now, but the workflow matches the real product: post, accept, submit, review, and release payout.
           </p>

@@ -68,7 +68,7 @@ export default function BrowseTasks({ onToast }: Props) {
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div>
             <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Discover Work</p>
-            <h2 className="text-2xl font-bold text-white">Open tasks ready for pickup</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Open tasks ready for pickup</h2>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <IconPlus className="w-3.5 h-3.5 text-teal-400" />

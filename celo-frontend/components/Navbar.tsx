@@ -153,21 +153,21 @@ export default function Navbar() {
             )}
 
             {authenticated && address ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button onClick={() => setWalletOpen(true)}
-                  className="outline-btn text-sm px-4 py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
+                  className="outline-btn text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
                   {shortenAddress(address)}
                 </button>
                 <button onClick={() => setConfirmLogout(true)}
-                  className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer text-xs px-2 py-2 rounded-xl hover:bg-red-500/10"
+                  className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer text-xs px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-xl hover:bg-red-500/10"
                   title="Disconnect wallet">
                   ✕
                 </button>
               </div>
             ) : (
               <button onClick={login} disabled={!ready}
-                className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer disabled:opacity-50">
-                Connect Wallet
+                className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl cursor-pointer disabled:opacity-50">
+                Connect
               </button>
             )}
           </div>

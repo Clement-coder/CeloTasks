@@ -47,21 +47,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 flex flex-col gap-5 sm:gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-0.5">Welcome back, <span className="text-white font-mono">{shortenAddress(address!)}</span></p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 text-xs sm:text-sm mt-0.5">Welcome back, <span className="text-white font-mono">{shortenAddress(address!)}</span></p>
         </div>
         <Link href="/create-task"
-          className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
-          <IconPlus className="w-4 h-4" />
-          <span>Create Task</span>
+          className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 sm:gap-2">
+          <IconPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span className="hidden xs:inline">Create Task</span>
+          <span className="xs:hidden">Create</span>
         </Link>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="glass-card rounded-2xl p-5 flex gap-4 items-start">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)" }}>
