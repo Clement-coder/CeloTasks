@@ -69,46 +69,46 @@ export default function Home() {
 
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-7">
           {/* Badge */}
-          <div className="fade-up inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-sm text-slate-300 border border-teal-500/25"
+          <div className="fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm text-slate-300 border border-teal-500/25"
             style={{ background: "rgba(20,184,166,0.08)" }}>
-            <span className="w-2 h-2 rounded-full bg-teal-400 glow-pulse shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 glow-pulse shrink-0" />
             Live on Celo Mainnet · Powered by MiniPay
           </div>
 
           {/* Logo + headline */}
-          <div className="fade-up fade-up-delay-1 flex flex-col items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden ring-2 ring-teal-500/20 shadow-2xl"
+          <div className="fade-up fade-up-delay-1 flex flex-col items-center gap-4">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-2 ring-teal-500/20 shadow-2xl"
               style={{ boxShadow: "0 0 40px rgba(20,184,166,0.25)" }}>
               <Image src="/celoTasklogo.png" alt="CeloTasks" width={80} height={80} className="w-full h-full object-cover" />
             </div>
-            <h1 className="text-5xl sm:text-7xl font-bold text-white leading-[1.05] tracking-tight">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight">
               Micro tasks.<br />
               <span className="gradient-text">Instant pay.</span>
             </h1>
           </div>
 
-          <p className="fade-up fade-up-delay-2 text-lg sm:text-xl text-slate-400 max-w-lg leading-relaxed">
+          <p className="fade-up fade-up-delay-2 text-base sm:text-xl text-slate-400 max-w-lg leading-relaxed px-2">
             Complete small tasks and get paid instantly on Celo using MiniPay.
             Build your onchain reputation. Earn on your terms.
           </p>
 
           {/* CTAs */}
-          <div className="fade-up fade-up-delay-3 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="fade-up fade-up-delay-3 flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-4 sm:px-0">
             <Link href="/dashboard"
-              className="gradient-btn text-white font-semibold px-9 py-4 rounded-xl text-base flex items-center justify-center gap-2">
+              className="gradient-btn text-white font-semibold px-7 py-3.5 sm:px-9 sm:py-4 rounded-xl text-sm sm:text-base flex items-center justify-center gap-2">
               Get Started <IconArrowRight className="w-4 h-4" />
             </Link>
             <a href="#how-it-works"
-              className="outline-btn text-slate-300 font-medium px-9 py-4 rounded-xl text-base text-center">
+              className="outline-btn text-slate-300 font-medium px-7 py-3.5 sm:px-9 sm:py-4 rounded-xl text-sm sm:text-base text-center">
               How It Works
             </a>
           </div>
 
           {/* Trust pills */}
-          <div className="fade-up fade-up-delay-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+          <div className="fade-up fade-up-delay-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-500">
             {["No fees", "Instant settlement", "MiniPay ready", "Open source"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
-                <IconCheck className="w-3.5 h-3.5 text-teal-500" />{t}
+                <IconCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-500" />{t}
               </span>
             ))}
           </div>
@@ -127,27 +127,27 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="px-4 py-28 max-w-5xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-4">Simple Process</p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5">How It Works</h2>
-          <p className="text-slate-400 max-w-sm mx-auto leading-relaxed">Three steps from wallet to payment. No middlemen, no delays.</p>
+      <section id="how-it-works" className="px-4 py-14 sm:py-28 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-10 sm:mb-16">
+          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Simple Process</p>
+          <h2 className="text-2xl sm:text-5xl font-bold text-white mb-4">How It Works</h2>
+          <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">Three steps from wallet to payment. No middlemen, no delays.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative">
           <div className="hidden sm:block absolute top-[52px] left-[calc(16.67%+28px)] right-[calc(16.67%+28px)] h-px"
             style={{ background: "linear-gradient(90deg, rgba(20,184,166,0.5), rgba(34,197,94,0.5), rgba(234,179,8,0.5))" }} />
-          {STEPS.map(({ Icon, n, title, desc }, i) => (
-            <div key={n} className="glass-card rounded-2xl p-8 flex flex-col gap-5 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+          {STEPS.map(({ Icon, n, title, desc }) => (
+            <div key={n} className="glass-card rounded-2xl p-5 sm:p-8 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
                   style={{ background: "linear-gradient(135deg, #14b8a6, #22c55e)" }}>
-                  <Icon className="w-6 h-6 text-white" />
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold" style={{ color: "rgba(255,255,255,0.08)" }}>{n}</span>
+                <span className="text-xl sm:text-2xl font-bold" style={{ color: "rgba(255,255,255,0.08)" }}>{n}</span>
               </div>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
+                <h3 className="text-white font-semibold text-base sm:text-lg mb-1.5">{title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
               </div>
             </div>
@@ -156,29 +156,29 @@ export default function Home() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section id="features" className="px-4 pb-28 max-w-5xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-4">Why CeloTasks</p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5">
+      <section id="features" className="px-4 pb-14 sm:pb-28 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-10 sm:mb-16">
+          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Why CeloTasks</p>
+          <h2 className="text-2xl sm:text-5xl font-bold text-white mb-4">
             Built for the <span className="gradient-text">real world</span>
           </h2>
-          <p className="text-slate-400 max-w-sm mx-auto leading-relaxed">The simplest way to earn and pay for micro-work on the blockchain.</p>
+          <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">The simplest way to earn and pay for micro-work on the blockchain.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {FEATURES.map(({ Icon, title, desc, color, border, iconColor, tag }) => (
-            <div key={title} className="glass-card rounded-2xl p-8 flex flex-col gap-5 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 group">
+            <div key={title} className="glass-card rounded-2xl p-5 sm:p-8 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 group">
               <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
                   style={{ background: color, border: `1px solid ${border}` }}>
-                  <Icon className="w-6 h-6" style={{ color: iconColor }} />
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
                 </div>
                 <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ color: iconColor, background: color, border: `1px solid ${border}` }}>
                   {tag}
                 </span>
               </div>
               <div>
-                <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
+                <h3 className="text-white font-semibold text-base sm:text-lg mb-1.5">{title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
               </div>
               <div className="mt-auto flex items-center gap-1.5 text-xs font-medium" style={{ color: iconColor }}>
@@ -190,27 +190,26 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="px-4 pb-28 max-w-5xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-4">Community</p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5">Trusted by earners</h2>
-          <p className="text-slate-400 max-w-sm mx-auto leading-relaxed">Real people, real payments, real reputation.</p>
+      <section className="px-4 pb-14 sm:pb-28 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-10 sm:mb-16">
+          <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Community</p>
+          <h2 className="text-2xl sm:text-5xl font-bold text-white mb-4">Trusted by earners</h2>
+          <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">Real people, real payments, real reputation.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {TESTIMONIALS.map(({ Icon, quote, name, role }) => (
-            <div key={name} className="glass-card rounded-2xl p-8 flex flex-col gap-5 hover:border-white/20 transition-all duration-300">
-              {/* Stars */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {TESTIMONIALS.map(({ quote, name, role }) => (
+            <div key={name} className="glass-card rounded-2xl p-5 sm:p-8 flex flex-col gap-4 hover:border-white/20 transition-all duration-300">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                  <svg key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 ))}
               </div>
               <p className="text-slate-300 text-sm leading-relaxed flex-1">&ldquo;{quote}&rdquo;</p>
-              <div className="flex items-center gap-3 pt-5 border-t border-white/[0.06]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              <div className="flex items-center gap-3 pt-4 border-t border-white/[0.06]">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                   style={{ background: "linear-gradient(135deg, #14b8a6, #22c55e)" }}>
                   {name.slice(2, 4).toUpperCase()}
                 </div>
@@ -225,23 +224,23 @@ export default function Home() {
       </section>
 
       {/* ── CTA BANNER ── */}
-      <section className="px-4 pb-28 max-w-5xl mx-auto w-full">
-        <div className="rounded-3xl p-12 sm:p-20 text-center relative overflow-hidden"
+      <section className="px-4 pb-14 sm:pb-28 max-w-5xl mx-auto w-full">
+        <div className="rounded-3xl p-8 sm:p-20 text-center relative overflow-hidden"
           style={{ background: "linear-gradient(135deg, rgba(20,184,166,0.13), rgba(34,197,94,0.08), rgba(234,179,8,0.08))", border: "1px solid rgba(20,184,166,0.22)" }}>
           <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, rgba(20,184,166,0.18) 0%, transparent 70%)" }} />
           <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, rgba(234,179,8,0.12) 0%, transparent 70%)" }} />
-          <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="relative z-10 flex flex-col items-center gap-5">
             <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em]">Get Started Today</p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
+            <h2 className="text-2xl sm:text-5xl font-bold text-white leading-tight">
               Ready to earn<br />on Celo?
             </h2>
-            <p className="text-slate-400 max-w-sm mx-auto leading-relaxed">
+            <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">
               Connect your wallet and start completing tasks in minutes.
             </p>
             <Link href="/dashboard"
-              className="gradient-btn inline-flex items-center gap-2 text-white font-semibold px-10 py-4 rounded-xl text-base">
+              className="gradient-btn inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 sm:px-10 sm:py-4 rounded-xl text-sm sm:text-base">
               Open Dashboard <IconArrowRight className="w-4 h-4" />
             </Link>
           </div>
