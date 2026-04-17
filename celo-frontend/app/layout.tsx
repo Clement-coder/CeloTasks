@@ -49,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CeloTasks" />
+        <meta name="talentapp:project_verification" content="8d3fcd07ab1fe3650ed4f46a695864e8cf6a2490d1822090368b8a3c795886fecf89dc22d85e5e5e2f1114897b86c13f8138ecab341b29c1b4482bcba4b75ec1" />
       </head>
       <body className="min-h-full antialiased" style={{ background: "#0b0f14", color: "#f1f5f9" }}>
         <Providers>
