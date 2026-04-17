@@ -5,7 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useAccount } from "wagmi";
 import { shortenAddress, isMiniPay } from "@/lib/wagmi";
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -23,6 +23,7 @@ export default function Navbar() {
   const [walletOpen, setWalletOpen] = useState(false);
   const { reviewQueue, paymentQueue } = useTaskStore();
   const urgentCount = reviewQueue.length + paymentQueue.length;
+  const pathname = usePathname();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,17 +120,28 @@ export default function Navbar() {
                 { href: "/create-task", label: "Create" },
                 { href: "/activity", label: "Activity", badge: urgentCount > 0 ? urgentCount : undefined },
                 { href: "/profile", label: "Profile" },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}
-                  className="relative text-sm text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/[0.06]">
-                  {item.label}
-                  {item.badge && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
-                      {item.badge > 9 ? "9+" : item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
+              ].map((item) => {
+                const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <Link key={item.href} href={item.href}
+                    className="relative text-sm font-medium px-3 py-1.5 rounded-full transition-all duration-200"
+                    style={isActive ? {
+                      color: "#fff",
+                      background: "rgba(255,255,255,0.10)",
+                      backdropFilter: "blur(12px)",
+                      WebkitBackdropFilter: "blur(12px)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      boxShadow: "0 2px 12px rgba(20,184,166,0.15), inset 0 1px 0 rgba(255,255,255,0.1)",
+                    } : { color: "rgb(148,163,184)" }}>
+                    {item.label}
+                    {item.badge && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                        {item.badge > 9 ? "9+" : item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
 
             {miniPay && (
