@@ -1,7 +1,7 @@
 "use client";
 import { useAccount, useBalance } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { shortenAddress } from "@/lib/wagmi";
 import BrowseTasks from "@/components/BrowseTasks";
@@ -21,9 +21,7 @@ export default function DashboardPage() {
   const { balance: cusdBalance } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
   const { toasts, addToast, removeToast } = useToast();
-  const { setMyAddress, stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
-
-  useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
+  const { stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
 
   if (!authenticated) {
     return (

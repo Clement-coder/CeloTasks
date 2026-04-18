@@ -2,7 +2,7 @@
 
 import { useAccount } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 import { shortenAddress } from "@/lib/wagmi";
@@ -12,11 +12,9 @@ import WalletModal from "@/components/WalletModal";
 export default function ProfilePage() {
   const { address } = useAccount();
   const { login, logout, ready, authenticated } = usePrivy();
-  const { currentUser, myAcceptedTasks, myCreatedTasks, stats, setMyAddress } = useTaskStore();
+  const { currentUser, myAcceptedTasks, myCreatedTasks, stats } = useTaskStore();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
-
-  useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
 
   const categoryCounts = [...myAcceptedTasks, ...myCreatedTasks].reduce<Record<string, number>>((acc, task) => {
     acc[task.category] = (acc[task.category] || 0) + 1;

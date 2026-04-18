@@ -1,10 +1,17 @@
 "use client";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider } from "@privy-io/wagmi";
+import { WagmiProvider, useAccount } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { privyConfig, wagmiConfig } from "@/lib/wagmi";
-import { TaskProvider } from "@/lib/taskStore";
-import { useState } from "react";
+import { TaskProvider, useTaskStore } from "@/lib/taskStore";
+import { useEffect, useState } from "react";
+
+function WalletSync() {
+  const { address } = useAccount();
+  const { setMyAddress } = useTaskStore();
+  useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
+  return null;
+}
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -15,6 +22,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={wagmiConfig}>
           <TaskProvider>
+            <WalletSync />
             {children}
           </TaskProvider>
         </WagmiProvider>
