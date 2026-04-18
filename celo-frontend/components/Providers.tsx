@@ -1,6 +1,7 @@
 "use client";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider, useAccount } from "@privy-io/wagmi";
+import { WagmiProvider } from "@privy-io/wagmi";
+import { useAccount } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { privyConfig, wagmiConfig } from "@/lib/wagmi";
 import { TaskProvider, useTaskStore } from "@/lib/taskStore";
