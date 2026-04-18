@@ -49,6 +49,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [editReward, setEditReward] = useState("");
   const [editDeadline, setEditDeadline] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editDeliverables, setEditDeliverables] = useState("");
+  const [editGuide, setEditGuide] = useState("");
+  const [editTags, setEditTags] = useState("");
   const [applyNote, setApplyNote] = useState("");
   const [attachment, setAttachment] = useState<{ name: string; data: string } | null>(null);
   const [disputeOpen, setDisputeOpen] = useState(false);
@@ -288,6 +291,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
             {task.status === "submitted" && isCreator && (
               <>
+                <p className="text-slate-500 text-xs">Revision requests used: <span className={task.revisionCount >= 3 ? "text-red-400 font-semibold" : "text-white"}>{task.revisionCount}/3</span></p>
                 <textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
@@ -353,7 +357,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             )}
 
             {isCreator && task.status === "open" && !editing && (
-              <button onClick={() => { setEditing(true); setEditTitle(task.title); setEditReward(task.reward); setEditDeadline(task.deadline); setEditDesc(task.description); }}
+              <button onClick={() => { setEditing(true); setEditTitle(task.title); setEditReward(task.reward); setEditDeadline(task.deadline); setEditDesc(task.description); setEditDeliverables(task.deliverables.join("\n")); setEditGuide(task.submissionGuide); setEditTags(task.tags.join(", ")); }}
                 className="outline-btn text-slate-300 font-semibold px-5 py-3 rounded-2xl cursor-pointer text-sm">
                 Edit Task
               </button>
@@ -375,8 +379,25 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     className="flex-1 px-4 py-3 rounded-2xl text-white text-sm focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 </div>
+                <textarea value={editDeliverables} onChange={(e) => setEditDeliverables(e.target.value)} placeholder={"Deliverables (one per line)"} rows={3}
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                <textarea value={editGuide} onChange={(e) => setEditGuide(e.target.value)} placeholder="Submission instructions" rows={2}
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                <input value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="Tags (comma separated)"
+                  className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 <div className="flex gap-2">
-                  <button onClick={async () => { await editTask(task.id, { title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline }); setEditing(false); addToast("Task updated.", "success"); }}
+                  <button onClick={async () => {
+                    await editTask(task.id, {
+                      title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline,
+                      deliverables: editDeliverables.split("\n").map((s) => s.trim()).filter(Boolean),
+                      submissionGuide: editGuide,
+                      tags: editTags.split(",").map((s) => s.trim()).filter(Boolean),
+                    });
+                    setEditing(false); addToast("Task updated.", "success");
+                  }}
                     className="gradient-btn text-white font-semibold px-4 py-2.5 rounded-2xl cursor-pointer text-sm flex-1">Save</button>
                   <button onClick={() => setEditing(false)} className="outline-btn text-slate-300 px-4 py-2.5 rounded-2xl cursor-pointer text-sm">Cancel</button>
                 </div>

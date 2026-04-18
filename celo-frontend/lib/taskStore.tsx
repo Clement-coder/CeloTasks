@@ -62,6 +62,7 @@ export interface Task {
   approvedAt?: string;
   paidAt?: string;
   applications?: TaskApplication[];
+  revisionCount: number;
 }
 
 export interface ActivityItem {
@@ -150,6 +151,7 @@ function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], s
     paidAt:          (row.paid_at as string) ?? undefined,
     applications:    apps,
     submission:      sub,
+    revisionCount:   (row.revision_count as number) ?? 0,
   };
 }
 
@@ -273,11 +275,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
+    if (!myAddress) throw new Error("Connect your wallet before accepting a task.");
     await ensureProfile(currentUser);
     const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
     if (error) throw error;
     await appendActivity(id, task.title, "accepted", currentUser, "Accepted the task and started work.");
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, myAddress]);
 
   const submitTask = useCallback(async (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }): Promise<void> => {
     const db = getSupabase();
@@ -302,7 +305,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    const { error } = await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback }).eq("id", id);
+    if (task.revisionCount >= 3) throw new Error("Maximum of 3 revision requests reached. Please approve or cancel.");
+    const { error } = await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback, revision_count: task.revisionCount + 1 }).eq("id", id);
     if (error) throw error;
     await appendActivity(id, task.title, "revision_requested", currentUser, feedback);
   }, [tasks, currentUser]);
