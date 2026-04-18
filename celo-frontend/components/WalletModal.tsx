@@ -1,11 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useFundWallet, type FundWalletConfig } from "@privy-io/react-auth";
-import { useSendTransaction } from "wagmi";
-import { parseEther, isAddress } from "viem";
+import { useWriteContract, useAccount } from "wagmi";
+import { parseUnits, isAddress } from "viem";
+import { celo } from "wagmi/chains";
 import { IconX, IconArrowDown, IconArrowUp, IconCreditCard, IconWallet } from "@/components/Icons";
 import { useCUSDBalance } from "@/hooks/useCUSDBalance";
-import { useAccount } from "wagmi";
+
+const CUSD_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as const;
+const ERC20_TRANSFER_ABI = [
+  { name: "transfer", type: "function", stateMutability: "nonpayable",
+    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }] },
+] as const;
 
 interface Props { open: boolean; onClose: () => void; }
 
@@ -22,7 +29,7 @@ export default function WalletModal({ open, onClose }: Props) {
   const [txError, setTxError] = useState("");
   const [txHash, setTxHash] = useState("");
 
-  const { sendTransactionAsync } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
 
   if (!open) return null;
 
@@ -32,7 +39,13 @@ export default function WalletModal({ open, onClose }: Props) {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { setTxError("Invalid amount"); return; }
     setSending(true);
     try {
-      const hash = await sendTransactionAsync({ to: toAddr as `0x${string}`, value: parseEther(amount) });
+      const hash = await writeContractAsync({
+        address: CUSD_ADDRESS,
+        abi: ERC20_TRANSFER_ABI,
+        functionName: "transfer",
+        args: [toAddr as `0x${string}`, parseUnits(amount, 18)],
+        chainId: celo.id,
+      });
       setTxHash(hash);
       setToAddr(""); setAmount("");
     } catch (e: unknown) {
@@ -42,7 +55,7 @@ export default function WalletModal({ open, onClose }: Props) {
 
   async function handleFund() {
     if (!address) return;
-    await fundWallet({ address, options: { chain: { id: 42220 } as FundWalletConfig["chain"] } });
+    await fundWallet({ address, options: { chain: { id: celo.id } as FundWalletConfig["chain"] } });
   }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -124,8 +137,8 @@ export default function WalletModal({ open, onClose }: Props) {
             <div className="rounded-2xl p-4 border border-amber-500/20 flex gap-3" style={{ background: "rgba(234,179,8,0.06)" }}>
               <IconArrowUp className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-white text-sm font-semibold mb-1">Send native CELO</p>
-                <p className="text-slate-400 text-xs leading-relaxed">This sends native CELO (not cUSD) to any address on the Celo network.</p>
+                <p className="text-white text-sm font-semibold mb-1">Send cUSD</p>
+                <p className="text-slate-400 text-xs leading-relaxed">Send cUSD to any address on the Celo network.</p>
               </div>
             </div>
             <div className="flex flex-col gap-3">
@@ -137,10 +150,9 @@ export default function WalletModal({ open, onClose }: Props) {
                   style={{ background: "rgba(255,255,255,0.04)" }} />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-slate-400 text-xs uppercase tracking-wider">Amount (CELO)</label>
+                <label className="text-slate-400 text-xs uppercase tracking-wider">Amount (cUSD)</label>
                 <input value={amount} onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00" type="number" min="0" step="any"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white border border-white/[0.08] outline-none focus:border-teal-500/50 transition-colors"
+                  placeholder="0.00" type="number" min="0" step="any"                  className="w-full rounded-xl px-4 py-3 text-sm text-white border border-white/[0.08] outline-none focus:border-teal-500/50 transition-colors"
                   style={{ background: "rgba(255,255,255,0.04)" }} />
               </div>
             </div>
