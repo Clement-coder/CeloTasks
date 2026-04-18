@@ -26,10 +26,13 @@ const FILTERS: { label: string; value: ActivityType | "all" }[] = [
 ];
 
 export default function ActivityPage() {
-  const { activity, stats } = useTaskStore();
+  const { activity, stats, currentUser } = useTaskStore();
   const [filter, setFilter] = useState<ActivityType | "all">("all");
+  const [myOnly, setMyOnly] = useState(false);
 
-  const filtered = filter === "all" ? activity : activity.filter((a) => a.type === filter);
+  const filtered = activity
+    .filter((a) => myOnly ? a.actor === currentUser : true)
+    .filter((a) => filter === "all" ? true : a.type === filter);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
@@ -52,7 +55,7 @@ export default function ActivityPage() {
         ))}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         {FILTERS.map(({ label, value }) => (
           <button key={value} onClick={() => setFilter(value)}
             className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
@@ -61,6 +64,12 @@ export default function ActivityPage() {
             {label}
           </button>
         ))}
+        <button onClick={() => setMyOnly((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ml-auto ${
+            myOnly ? "border-teal-500/50 text-teal-400 bg-teal-500/10" : "border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-white"
+          }`}>
+          {myOnly ? "My Activity ✓" : "My Activity"}
+        </button>
       </div>
 
       <div className="glass-card rounded-3xl p-5 sm:p-6 flex flex-col gap-4">

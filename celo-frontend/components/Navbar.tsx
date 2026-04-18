@@ -30,7 +30,7 @@ export default function Navbar() {
   const { tasks } = useTaskStore();
 
   const searchResults = searchQuery.trim().length > 1
-    ? tasks.filter((t) => `${t.title} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+    ? tasks.filter((t) => `${t.title} ${t.description} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
     : [];
 
   useEffect(() => { setMiniPay(isMiniPay()); }, []);
@@ -60,7 +60,16 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-3">
-            {/* Global search */}
+            {/* Mobile search button */}
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-white transition-colors"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <IconSearch className="w-4 h-4" />
+            </button>
+
+            {/* Global search — desktop */}
             <div className="relative hidden md:block">
               <button
                 onClick={() => setSearchOpen((v) => !v)}
@@ -173,6 +182,49 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* Mobile search overlay */}
+      {searchOpen && (
+        <div className="md:hidden fixed inset-0 z-[55] flex flex-col" style={{ background: "rgba(11,15,20,0.97)", backdropFilter: "blur(16px)" }}>
+          <div className="flex items-center gap-3 px-4 py-4 border-b border-white/[0.08]">
+            <IconSearch className="w-5 h-5 text-slate-500 shrink-0" />
+            <input
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") { setSearchOpen(false); setSearchQuery(""); }
+                if (e.key === "Enter" && searchResults.length > 0) {
+                  router.push(`/task/${searchResults[0].id}`);
+                  setSearchOpen(false); setSearchQuery("");
+                }
+              }}
+              placeholder="Search tasks by title, description, or tag…"
+              className="flex-1 bg-transparent text-white text-base outline-none placeholder-slate-500"
+            />
+            <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="text-slate-400 hover:text-white text-sm px-2 py-1">Cancel</button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {searchResults.length > 0 ? (
+              <ul className="py-2">
+                {searchResults.map((t) => (
+                  <li key={t.id}>
+                    <Link href={`/task/${t.id}`} onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                      className="flex flex-col px-5 py-4 hover:bg-white/[0.05] transition-colors border-b border-white/[0.04]">
+                      <span className="text-white font-medium">{t.title}</span>
+                      <span className="text-slate-500 text-sm mt-0.5">{t.reward} {t.currency} · {t.category}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : searchQuery.trim().length > 1 ? (
+              <p className="text-slate-500 text-center py-12">No tasks found for &ldquo;{searchQuery}&rdquo;</p>
+            ) : (
+              <p className="text-slate-600 text-sm text-center py-12">Type to search tasks…</p>
+            )}
+          </div>
+        </div>
+      )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
