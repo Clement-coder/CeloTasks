@@ -6,6 +6,7 @@ import { TaskSkeleton } from "@/components/Skeletons";
 import { IconPlus, IconSearch } from "@/components/Icons";
 import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
 import { type ToastType } from "@/hooks/useToast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Props {
   onToast: (msg: string, type?: ToastType) => void;
@@ -16,6 +17,7 @@ const SORTS = ["Newest", "Reward ↑", "Reward ↓", "Deadline Soon"];
 export default function BrowseTasks({ onToast }: Props) {
   const { browseTasks, acceptTask } = useTaskStore();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
@@ -57,9 +59,15 @@ export default function BrowseTasks({ onToast }: Props) {
 
   const handleAccept = async (id: string) => {
     setLoadingId(id);
-    await acceptTask(id);
-    onToast("Task accepted. It has moved into your work queue.", "success");
-    setLoadingId(null);
+    try {
+      await acceptTask(id);
+      onToast("Task accepted. It has moved into your work queue.", "success");
+    } catch (e: unknown) {
+      onToast(e instanceof Error ? e.message : "Failed to accept task.", "error");
+    } finally {
+      setLoadingId(null);
+      setPendingAcceptId(null);
+    }
   };
 
   return (
@@ -162,7 +170,7 @@ export default function BrowseTasks({ onToast }: Props) {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {paginated.map((task) => (
-              <TaskCard key={task.id} task={task} onAccept={handleAccept} loading={loadingId === task.id} />
+              <TaskCard key={task.id} task={task} onAccept={(id) => setPendingAcceptId(id)} loading={loadingId === task.id} />
             ))}
           </div>
           {totalPages > 1 && (
@@ -176,6 +184,15 @@ export default function BrowseTasks({ onToast }: Props) {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={!!pendingAcceptId}
+        title="Accept this task?"
+        message="You'll be committed to completing this task. Make sure you can deliver before the deadline."
+        confirmLabel="Accept Task"
+        onCancel={() => setPendingAcceptId(null)}
+        onConfirm={() => pendingAcceptId && handleAccept(pendingAcceptId)}
+      />
     </div>
   );
 }

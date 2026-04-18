@@ -44,6 +44,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [proofLink, setProofLink] = useState("");
   const [feedback, setFeedback] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAcceptOpen, setConfirmAcceptOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editReward, setEditReward] = useState("");
@@ -76,9 +77,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   const runAction = async (fn: () => Promise<void>, message: string) => {
     setLoading(true);
-    await fn();
-    addToast(message, "success");
-    setLoading(false);
+    try {
+      await fn();
+      addToast(message, "success");
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : "Something went wrong. Please try again.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -212,7 +218,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <textarea value={applyNote} onChange={(e) => setApplyNote(e.target.value)} placeholder="Why are you a good fit? (optional)"
                     className="w-full min-h-20 px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none resize-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-                  <button disabled={loading} onClick={async () => { await applyToTask(task.id, applyNote.trim()); addToast("Application submitted!", "success"); }}
+                  <button disabled={loading} onClick={async () => {
+                    setLoading(true);
+                    try {
+                      await applyToTask(task.id, applyNote.trim());
+                      addToast("Application submitted!", "success");
+                    } catch (e: unknown) {
+                      addToast(e instanceof Error ? e.message : "Failed to submit application.", "error");
+                    } finally { setLoading(false); }
+                  }}
                     className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2">
                     <IconZap className="w-4 h-4" /> Apply for Task
                   </button>
