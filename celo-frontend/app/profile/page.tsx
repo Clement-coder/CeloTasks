@@ -3,8 +3,9 @@
 import { useAccount } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
 import { useState } from "react";
-import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
-import { useTaskStore } from "@/lib/taskStore";
+import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet, IconArrowRight } from "@/components/Icons";
+import { useTaskStore, type TaskStatus } from "@/lib/taskStore";
+import Link from "next/link";
 import { shortenAddress } from "@/lib/wagmi";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import WalletModal from "@/components/WalletModal";
@@ -116,22 +117,63 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="space-y-3">
-            {topCategories.length > 0 ? topCategories.map(([cat, count]) => (
-              <div key={cat}>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-300">{cat}</span>
-                  <span className="text-white font-medium">{count} task{count === 1 ? "" : "s"}</span>
+            {topCategories.length > 0 ? topCategories.map(([cat, count]) => {
+              const maxCount = topCategories[0][1];
+              return (
+                <div key={cat}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-slate-300">{cat}</span>
+                    <span className="text-white font-medium">{count} task{count === 1 ? "" : "s"}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.round((count / maxCount) * 100)}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e, #38bdf8)" }} />
+                  </div>
                 </div>
-                <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, count * 20)}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e, #38bdf8)" }} />
-                </div>
-              </div>
-            )) : (
+              );
+            }) : (
               <p className="text-slate-500 text-sm">No category data yet.</p>
             )}
           </div>
         </section>
       </div>
+
+      <section className="glass-card rounded-3xl p-6 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white font-semibold">Task History</p>
+            <p className="text-slate-500 text-sm">All tasks you created or worked on.</p>
+          </div>
+        </div>
+        {[...myCreatedTasks, ...myAcceptedTasks.filter((t) => !myCreatedTasks.find((c) => c.id === t.id))].length === 0 ? (
+          <p className="text-slate-500 text-sm">No tasks yet.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {[...myCreatedTasks, ...myAcceptedTasks.filter((t) => !myCreatedTasks.find((c) => c.id === t.id))]
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .map((task) => {
+                const STATUS_COLORS: Record<TaskStatus, string> = {
+                  open: "text-teal-400", in_progress: "text-amber-300", submitted: "text-sky-300",
+                  approved: "text-green-300", paid: "text-fuchsia-300", cancelled: "text-red-400",
+                };
+                const role = task.creator === currentUser ? "Creator" : "Worker";
+                return (
+                  <Link key={task.id} href={`/task/${task.id}`}
+                    className="flex items-center justify-between gap-3 rounded-2xl p-4 border border-white/[0.08] hover:border-white/20 transition-colors"
+                    style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{task.title}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">
+                        <span className={STATUS_COLORS[task.status]}>{task.status.replace("_", " ")}</span>
+                        {" · "}{role}{" · "}{task.reward} {task.currency}
+                      </p>
+                    </div>
+                    <IconArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
+                  </Link>
+                );
+              })}
+          </div>
+        )}
+      </section>
 
       <ConfirmDialog
         open={confirmLogout}
