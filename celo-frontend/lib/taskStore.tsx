@@ -102,7 +102,7 @@ interface TaskStore {
   approveTask: (id: string) => Promise<void>;
   releasePayment: (id: string) => Promise<void>;
   cancelTask: (id: string) => Promise<void>;
-  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>) => Promise<void>;
+  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>) => Promise<void>;
   applyToTask: (id: string, note: string) => Promise<void>;
   selectApplicant: (taskId: string, applicant: string) => Promise<void>;
   getTask: (id: string) => Task | undefined;
@@ -274,7 +274,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     await ensureProfile(currentUser);
-    await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
+    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "accepted", currentUser, "Accepted the task and started work.");
   }, [tasks, currentUser]);
 
@@ -282,7 +283,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    await db.from("task_submissions").upsert({
+    const { error: subError } = await db.from("task_submissions").upsert({
       task_id:         id,
       worker_wallet:   currentUser,
       proof_text:      payload.proofText,
@@ -291,7 +292,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       attachment_url:  payload.attachmentData ?? null,
       submitted_at:    new Date().toISOString(),
     }, { onConflict: "task_id" });
-    await db.from("tasks").update({ status: "submitted", creator_feedback: null }).eq("id", id);
+    if (subError) throw subError;
+    const { error } = await db.from("tasks").update({ status: "submitted", creator_feedback: null }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "submitted", currentUser, "Submitted work proof for creator review.");
   }, [tasks, currentUser]);
 
@@ -299,7 +302,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback }).eq("id", id);
+    const { error } = await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "revision_requested", currentUser, feedback);
   }, [tasks, currentUser]);
 
@@ -307,7 +311,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    await db.from("tasks").update({ status: "approved", approved_at: new Date().toISOString(), creator_feedback: null }).eq("id", id);
+    const { error } = await db.from("tasks").update({ status: "approved", approved_at: new Date().toISOString(), creator_feedback: null }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "approved", currentUser, "Approved the submission and queued payment.");
   }, [tasks, currentUser]);
 
@@ -315,7 +320,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`);
   }, [tasks, currentUser]);
 
@@ -323,37 +329,44 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    await db.from("tasks").update({ status: "cancelled" }).eq("id", id);
+    const { error } = await db.from("tasks").update({ status: "cancelled" }).eq("id", id);
+    if (error) throw error;
     await appendActivity(id, task.title, "cancelled", currentUser, "Task cancelled by creator.");
   }, [tasks, currentUser]);
 
-  const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags">>): Promise<void> => {
+  const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>): Promise<void> => {
     const db = getSupabase();
     const patch: Record<string, unknown> = {};
-    if (updates.title)           patch.title            = updates.title;
-    if (updates.description)     patch.description      = updates.description;
-    if (updates.reward)          patch.reward           = Number(updates.reward);
-    if (updates.deadline)        patch.deadline         = updates.deadline;
-    if (updates.estimatedHours)  patch.estimated_hours  = Number(updates.estimatedHours);
-    if (updates.submissionGuide) patch.submission_guide = updates.submissionGuide;
-    if (updates.tags)            patch.tags             = updates.tags;
-    await db.from("tasks").update(patch).eq("id", id);
+    if (updates.title !== undefined)           patch.title            = updates.title;
+    if (updates.description !== undefined)     patch.description      = updates.description;
+    if (updates.reward !== undefined)          patch.reward           = Number(updates.reward);
+    if (updates.deadline !== undefined)        patch.deadline         = updates.deadline;
+    if (updates.estimatedHours !== undefined)  patch.estimated_hours  = Number(updates.estimatedHours);
+    if (updates.submissionGuide !== undefined) patch.submission_guide = updates.submissionGuide;
+    if (updates.tags !== undefined)            patch.tags             = updates.tags;
+    if (updates.deliverables !== undefined)    patch.deliverables     = updates.deliverables;
+    if (updates.category !== undefined)        patch.category         = updates.category;
+    if (updates.difficulty !== undefined)      patch.difficulty       = updates.difficulty;
+    const { error } = await db.from("tasks").update(patch).eq("id", id);
+    if (error) throw error;
   }, []);
 
   const applyToTask = useCallback(async (id: string, note: string): Promise<void> => {
     const db = getSupabase();
     await ensureProfile(currentUser);
-    await db.from("task_applications").upsert(
+    const { error } = await db.from("task_applications").upsert(
       { task_id: id, applicant: currentUser, note },
       { onConflict: "task_id,applicant" }
     );
+    if (error) throw error;
   }, [currentUser]);
 
   const selectApplicant = useCallback(async (taskId: string, applicant: string): Promise<void> => {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
-    await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant }).eq("id", taskId);
+    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant }).eq("id", taskId);
+    if (error) throw error;
     await appendActivity(taskId, task.title, "accepted", applicant, "Selected by creator to work on this task.");
   }, [tasks]);
 

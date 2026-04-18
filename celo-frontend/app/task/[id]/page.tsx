@@ -330,7 +330,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <div className="rounded-2xl p-4 border border-fuchsia-400/15" style={{ background: "rgba(217,70,239,0.08)" }}>
                 <p className="text-fuchsia-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2">Workflow Complete</p>
                 <p className="text-sm text-slate-200 leading-relaxed">
-                  This mock task is fully complete. Use the activity feed and profile page to see how paid work rolls into frontend analytics.
+                  Payment has been released. This task is fully complete.
                 </p>
               </div>
             )}

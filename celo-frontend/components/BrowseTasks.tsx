@@ -156,7 +156,7 @@ export default function BrowseTasks({ onToast }: Props) {
             <IconSearch className="w-7 h-7 text-teal-400/60" />
           </div>
           <h3 className="text-white text-xl font-semibold">No tasks match this filter</h3>
-          <p className="text-slate-500 mt-2 max-w-md">Try another category or keyword. Once contract writes are added, this same UI can be backed by on-chain task discovery.</p>
+          <p className="text-slate-500 mt-2 max-w-md">Try another category, keyword, or reward range.</p>
         </div>
       ) : (
         <>

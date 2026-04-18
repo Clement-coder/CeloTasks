@@ -111,7 +111,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
           <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Create Task</p>
           <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight">Brief the work clearly, then publish.</h1>
           <p className="text-slate-400 mt-3 max-w-2xl">
-            This frontend stays fully mock for now, but the workflow matches the real product: post, accept, submit, review, and release payout.
+            Set a reward, deadline, and clear deliverables. Workers apply and you select who works on it.
           </p>
         </div>
 
@@ -273,7 +273,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
           ) : (
             <>
               <IconPlus className="w-4 h-4" />
-              Publish Mock Task
+              Publish Task
             </>
           )}
         </button>
