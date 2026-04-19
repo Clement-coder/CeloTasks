@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconHome, IconPlus, IconSearch, IconStar, IconZap } from "@/components/Icons";
+import { IconHome, IconPlus, IconSearch, IconStar, IconZap, IconShield } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 
 const LEFT = [
@@ -15,7 +15,8 @@ const RIGHT = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { reviewQueue, paymentQueue } = useTaskStore();
+  const { reviewQueue, paymentQueue, profile } = useTaskStore();
+  const isAdmin = profile?.role === "admin";
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
   // Don't show on the marketing landing page
@@ -64,6 +65,12 @@ export default function BottomNav() {
             <span className="text-[10px] font-medium">{label}</span>
           </Link>
         ))}
+        {isAdmin && (
+          <Link href="/admin" className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${isActive("/admin") ? "text-teal-400" : "text-slate-500"}`}>
+            <IconShield className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Admin</span>
+          </Link>
+        )}
       </div>
     </nav>
   );

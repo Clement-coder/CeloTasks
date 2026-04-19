@@ -11,7 +11,7 @@ import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import WalletModal from "@/components/WalletModal";
 import { useTaskStore } from "@/lib/taskStore";
-import { IconSearch } from "@/components/Icons";
+import { IconSearch, IconShield } from "@/components/Icons";
 
 export default function Navbar() {
   const { login, logout, ready, authenticated } = usePrivy();
@@ -21,7 +21,8 @@ export default function Navbar() {
   const prevAuth = useRef<boolean | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
-  const { reviewQueue, paymentQueue } = useTaskStore();
+  const { reviewQueue, paymentQueue, profile } = useTaskStore();
+  const isAdmin = profile?.role === "admin";
   const urgentCount = reviewQueue.length + paymentQueue.length;
   const pathname = usePathname();
   const router = useRouter();
@@ -163,6 +164,13 @@ export default function Navbar() {
 
             {authenticated && address ? (
               <div className="flex items-center gap-1.5 sm:gap-2">
+                {isAdmin && (
+                  <Link href="/admin"
+                    className="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold transition-colors"
+                    style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.25)", color: "#2dd4bf" }}>
+                    <IconShield className="w-3.5 h-3.5" />Admin
+                  </Link>
+                )}
                 <button onClick={() => setWalletOpen(true)}
                   className="outline-btn text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
                   {shortenAddress(address)}

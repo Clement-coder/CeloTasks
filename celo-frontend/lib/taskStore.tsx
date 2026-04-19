@@ -96,6 +96,7 @@ export interface UserProfile {
   avatarUrl: string | null;
   isVerified: boolean;
   verificationId: string | null;
+  role: "user" | "admin";
 }
 
 interface TaskStore {
@@ -266,6 +267,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         avatarUrl:      (data.avatar_url as string) ?? null,
         isVerified:     (data.is_verified as boolean) ?? false,
         verificationId: (data.verification_id as string) ?? null,
+        role:           (data.role as "user" | "admin") ?? "user",
       });
     });
   }, []);
