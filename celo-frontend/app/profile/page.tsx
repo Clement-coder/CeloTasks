@@ -3,13 +3,17 @@
 import { useAccount } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
 import { useState } from "react";
-import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet, IconArrowRight, IconUsers } from "@/components/Icons";
+import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet, IconArrowRight, IconUsers, IconShield } from "@/components/Icons";
 import { useTaskStore, type TaskStatus } from "@/lib/taskStore";
 import Link from "next/link";
 import { shortenAddress } from "@/lib/wagmi";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import WalletModal from "@/components/WalletModal";
 import CompleteProfileModal from "@/components/CompleteProfileModal";
+import KYCButton from "@/components/KYCButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ToastContainer";
 
 export default function ProfilePage() {
   const { address } = useAccount();
@@ -18,15 +22,15 @@ export default function ProfilePage() {
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { toasts, addToast, removeToast } = useToast();
 
-  // Pull name/email from Privy linked accounts (Google, email login)
   const privyEmail = user?.email?.address ?? user?.google?.email ?? null;
   const privyName  = user?.google?.name ?? null;
 
-  // Resolved display values: prefer Supabase profile, fall back to Privy, then wallet
   const displayName  = profile?.displayName ?? privyName ?? null;
   const displayEmail = profile?.email ?? privyEmail ?? null;
   const avatarUrl    = profile?.avatarUrl ?? null;
+  const isVerified   = profile?.isVerified ?? false;
 
   const isProfileIncomplete = authenticated && (!displayName || !displayEmail);
 
@@ -39,7 +43,24 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
 
-      {/* ── Incomplete profile banner ── */}
+      {/* ── KYC banner ── */}
+      {authenticated && !isVerified && (
+        <div className="rounded-2xl px-5 py-4 border border-sky-400/20 flex items-center justify-between gap-4"
+          style={{ background: "rgba(56,189,248,0.07)" }}>
+          <div className="flex items-center gap-3">
+            <IconShield className="w-5 h-5 text-sky-400 shrink-0" />
+            <div>
+              <p className="text-sky-300 text-sm font-semibold">Identity not verified</p>
+              <p className="text-slate-400 text-xs mt-0.5">Complete KYC to unlock task creation and acceptance.</p>
+            </div>
+          </div>
+          <KYCButton
+            wallet={address ?? null}
+            onSuccess={(vid) => addToast(`Verification successful ✅ (ID: ${vid.slice(0, 8)}…)`, "success")}
+            onFailure={() => addToast("Verification failed. Please try again.", "error")}
+          />
+        </div>
+      )}
       {isProfileIncomplete && (
         <div className="rounded-2xl px-5 py-4 border border-amber-400/20 flex items-center justify-between gap-4"
           style={{ background: "rgba(234,179,8,0.07)" }}>
@@ -75,8 +96,9 @@ export default function ProfilePage() {
             </button>
             <div>
               <p className="text-teal-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1">Profile</p>
-              <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight">
+              <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight flex items-center gap-3 flex-wrap">
                 {displayName ?? (address ? shortenAddress(address) : "Anonymous")}
+                {isVerified && <VerifiedBadge />}
               </h1>
               {displayEmail && <p className="text-slate-400 text-sm mt-1">{displayEmail}</p>}
               {!displayName && (
@@ -254,6 +276,7 @@ export default function ProfilePage() {
       />
       <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
       <CompleteProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -94,6 +94,8 @@ export interface UserProfile {
   displayName: string | null;
   email: string | null;
   avatarUrl: string | null;
+  isVerified: boolean;
+  verificationId: string | null;
 }
 
 interface TaskStore {
@@ -258,10 +260,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     // fetch profile row
     getSupabase().from("profiles").select("*").eq("wallet", lower).single().then(({ data }: { data: Record<string, unknown> | null }) => {
       if (data) setProfile({
-        wallet:      data.wallet as string,
-        displayName: (data.display_name as string) ?? null,
-        email:       (data.email as string) ?? null,
-        avatarUrl:   (data.avatar_url as string) ?? null,
+        wallet:         data.wallet as string,
+        displayName:    (data.display_name as string) ?? null,
+        email:          (data.email as string) ?? null,
+        avatarUrl:      (data.avatar_url as string) ?? null,
+        isVerified:     (data.is_verified as boolean) ?? false,
+        verificationId: (data.verification_id as string) ?? null,
       });
     });
   }, []);

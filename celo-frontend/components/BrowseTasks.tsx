@@ -15,7 +15,8 @@ interface Props {
 const SORTS = ["Newest", "Reward ↑", "Reward ↓", "Deadline Soon"];
 
 export default function BrowseTasks({ onToast }: Props) {
-  const { browseTasks, acceptTask } = useTaskStore();
+  const { browseTasks, acceptTask, profile } = useTaskStore();
+  const isVerified = profile?.isVerified ?? false;
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -58,6 +59,11 @@ export default function BrowseTasks({ onToast }: Props) {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleAccept = async (id: string) => {
+    if (!isVerified) {
+      onToast("Complete KYC on your profile to accept tasks.", "error");
+      setPendingAcceptId(null);
+      return;
+    }
     setLoadingId(id);
     try {
       await acceptTask(id);
