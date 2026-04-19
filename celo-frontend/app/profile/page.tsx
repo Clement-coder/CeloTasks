@@ -50,8 +50,8 @@ export default function ProfilePage() {
           <div className="flex items-start gap-3">
             <IconShield className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sky-300 text-sm font-semibold">Identity not verified</p>
-              <p className="text-slate-400 text-xs mt-0.5">Complete KYC to unlock task creation and acceptance.</p>
+              <p className="text-sky-300 text-sm font-semibold">Verify your identity</p>
+              <p className="text-slate-400 text-xs mt-0.5">Complete KYC to build trust with task creators and workers.</p>
             </div>
           </div>
           <div className="self-start sm:self-auto shrink-0">
