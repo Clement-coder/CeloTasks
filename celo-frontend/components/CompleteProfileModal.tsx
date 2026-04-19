@@ -19,7 +19,7 @@ export default function CompleteProfileModal({ open, onClose }: Props) {
   async function handleSave() {
     setError("");
     if (!name.trim() && !profile?.displayName) { setError("Display name is required"); return; }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Invalid email address"); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Enter a valid email address (e.g. you@gmail.com)"); return; }
     setSaving(true);
     try {
       await updateProfile({ displayName: name.trim(), email: email.trim() || undefined, avatarUrl: avatar ?? undefined });
@@ -85,12 +85,37 @@ export default function CompleteProfileModal({ open, onClose }: Props) {
         </div>
 
         {/* Email */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 relative">
           <label className="text-slate-400 text-xs uppercase tracking-wider">Email Address</label>
           <input value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com" type="email"
+            placeholder="you@example.com" type="email" autoComplete="email"
             className="w-full px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-teal-500/40 transition-colors"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+            style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "rgba(248,113,113,0.5)" : "rgba(255,255,255,0.08)"}` }} />
+          {/* Domain suggestions */}
+          {(() => {
+            const DOMAINS = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com", "icloud.com", "proton.me"];
+            const atIdx = email.indexOf("@");
+            if (atIdx === -1 || email.length <= atIdx + 1) return null;
+            const typed = email.slice(atIdx + 1).toLowerCase();
+            const local = email.slice(0, atIdx);
+            const suggestions = DOMAINS.filter((d) => d.startsWith(typed) && d !== typed);
+            if (suggestions.length === 0) return null;
+            return (
+              <div className="absolute top-full mt-1 left-0 right-0 rounded-2xl overflow-hidden shadow-2xl z-50"
+                style={{ background: "#0f1520", border: "1px solid rgba(255,255,255,0.1)" }}>
+                {suggestions.map((domain) => (
+                  <button key={domain} type="button"
+                    onClick={() => setEmail(`${local}@${domain}`)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors cursor-pointer flex items-center gap-2">
+                    <span className="text-slate-500">{local}@</span><span className="text-teal-300">{domain}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+          {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+            <p className="text-red-400 text-xs">Enter a valid email address (e.g. you@gmail.com)</p>
+          )}
           <p className="text-slate-600 text-xs">Optional — only visible to you.</p>
         </div>
 
