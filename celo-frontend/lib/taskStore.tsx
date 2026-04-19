@@ -89,13 +89,22 @@ export interface CreateTaskInput {
   tags: string[];
 }
 
+export interface UserProfile {
+  wallet: string;
+  displayName: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+}
+
 interface TaskStore {
   tasks: Task[];
   activity: ActivityItem[];
   myAddress: string | null;
   currentUser: string;
   loading: boolean;
+  profile: UserProfile | null;
   setMyAddress: (addr: string) => void;
+  updateProfile: (data: { displayName?: string; email?: string; avatarUrl?: string }) => Promise<void>;
   createTask: (input: CreateTaskInput) => Promise<string>;
   acceptTask: (id: string) => Promise<void>;
   submitTask: (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }) => Promise<void>;
@@ -187,6 +196,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [myAddress, _setMyAddress] = useState<string | null>(null);
   const [loading, setLoading]   = useState(true);
+  const [profile, setProfile]   = useState<UserProfile | null>(null);
 
   const currentUser = myAddress?.toLowerCase() ?? FALLBACK_USER;
 
@@ -242,9 +252,30 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   // ── setMyAddress — also upsert profile ─────────────────────────────────────
   const setMyAddress = useCallback((addr: string) => {
-    _setMyAddress(addr.toLowerCase());
-    ensureProfile(addr.toLowerCase());
+    const lower = addr.toLowerCase();
+    _setMyAddress(lower);
+    ensureProfile(lower);
+    // fetch profile row
+    getSupabase().from("profiles").select("*").eq("wallet", lower).single().then(({ data }: { data: Record<string, unknown> | null }) => {
+      if (data) setProfile({
+        wallet:      data.wallet as string,
+        displayName: (data.display_name as string) ?? null,
+        email:       (data.email as string) ?? null,
+        avatarUrl:   (data.avatar_url as string) ?? null,
+      });
+    });
   }, []);
+
+  const updateProfile = useCallback(async (data: { displayName?: string; email?: string; avatarUrl?: string }) => {
+    if (!myAddress) return;
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (data.displayName !== undefined) patch.display_name = data.displayName;
+    if (data.email !== undefined)       patch.email        = data.email;
+    if (data.avatarUrl !== undefined)   patch.avatar_url   = data.avatarUrl;
+    const { error } = await getSupabase().from("profiles").update(patch).eq("wallet", myAddress);
+    if (error) throw error;
+    setProfile((prev) => prev ? { ...prev, ...data } : null);
+  }, [myAddress]);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
@@ -401,8 +432,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   return (
     <TaskContext.Provider value={{
-      tasks, activity, myAddress, currentUser, loading,
-      setMyAddress, createTask, acceptTask, submitTask,
+      tasks, activity, myAddress, currentUser, loading, profile,
+      setMyAddress, updateProfile, createTask, acceptTask, submitTask,
       requestRevision, approveTask, releasePayment, cancelTask,
       editTask, applyToTask, selectApplicant, getTask,
       browseTasks, myCreatedTasks, myAcceptedTasks,
