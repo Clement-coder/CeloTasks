@@ -1,6 +1,13 @@
 "use client";
-import { IconCheck, IconCoin, IconClock, IconUsers } from "@/components/Icons";
+import { IconCheck, IconCoin, IconUsers, IconZap } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
+
+const STATS = [
+  { icon: IconCheck, label: "Tasks Completed", desc: "Total paid tasks",        color: "text-teal-400",    bg: "rgba(20,184,166,0.1)",  border: "rgba(20,184,166,0.2)" },
+  { icon: IconCoin,  label: "Paid Out",         desc: "Total cUSD distributed", color: "text-green-400",   bg: "rgba(34,197,94,0.1)",   border: "rgba(34,197,94,0.2)" },
+  { icon: IconUsers, label: "Active Users",     desc: "Unique wallets",         color: "text-amber-400",   bg: "rgba(234,179,8,0.1)",   border: "rgba(234,179,8,0.2)" },
+  { icon: IconZap,   label: "Avg. Settlement",  desc: "Payment speed on Celo",  color: "text-fuchsia-400", bg: "rgba(217,70,239,0.1)",  border: "rgba(217,70,239,0.2)" },
+] as const;
 
 export default function LiveStats() {
   const { tasks, activity } = useTaskStore();
@@ -8,24 +15,25 @@ export default function LiveStats() {
   const totalEarnings = paid.reduce((sum, t) => sum + Number(t.reward), 0);
   const uniqueUsers = new Set(tasks.flatMap((t) => [t.creator, t.acceptor].filter(Boolean))).size;
 
-  const stats = [
-    { Icon: IconCheck,      value: `${activity.length}+`,        label: "Tasks Completed" },
-    { Icon: IconCoin,       value: `$${totalEarnings.toFixed(0)}+`, label: "Paid Out" },
-    { Icon: IconUsers,      value: `${uniqueUsers}+`,            label: "Active Users" },
-    { Icon: IconClock,      value: "< 3s",                        label: "Avg. Settlement" },
+  const values = [
+    `${activity.length}+`,
+    `$${totalEarnings.toFixed(0)}+`,
+    `${uniqueUsers}+`,
+    "< 3s",
   ];
 
   return (
-    <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8">
-      {stats.map(({ Icon, value, label }) => (
+    <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
+      {STATS.map(({ icon: Icon, label, desc, color, bg, border }, i) => (
         <div key={label} className="flex flex-col items-center gap-3 text-center">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)" }}>
-            <Icon className="w-5 h-5 text-teal-400" />
+            style={{ background: bg, border: `1px solid ${border}` }}>
+            <Icon className={`w-5 h-5 ${color}`} />
           </div>
           <div>
-            <p className="gradient-text font-bold text-3xl leading-none">{value}</p>
-            <p className="text-slate-500 text-xs mt-1.5 uppercase tracking-wider">{label}</p>
+            <p className={`font-bold text-3xl leading-none ${color}`}>{values[i]}</p>
+            <p className="text-white text-sm font-semibold mt-1.5">{label}</p>
+            <p className="text-slate-500 text-xs mt-0.5">{desc}</p>
           </div>
         </div>
       ))}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TaskCard from "@/components/TaskCard";
-import { IconCheck, IconCoin, IconPlus, IconSearch } from "@/components/Icons";
+import { IconCheck, IconCoin, IconPlus, IconSearch, IconX, IconZap } from "@/components/Icons";
 import { useTaskStore, type TaskStatus } from "@/lib/taskStore";
 import { type ToastType } from "@/hooks/useToast";
 
@@ -36,10 +36,10 @@ export default function MyTasks({ onToast }: Props) {
   const goToTask = (id: string) => router.push(`/task/${id}`);
 
   const sections = [
-    { key: "review", title: "Needs Your Review", icon: <IconCheck className="w-4 h-4 text-sky-300" />, data: reviews, tone: "rgba(56,189,248,0.08)", actionLabel: (status: TaskStatus) => status === "submitted" ? "Review" : "Open" },
-    { key: "payout", title: "Ready For Payout", icon: <IconCoin className="w-4 h-4 text-fuchsia-300" />, data: payouts, tone: "rgba(217,70,239,0.08)", actionLabel: () => "Pay Now" },
-    { key: "created", title: "Created By You", icon: <IconPlus className="w-4 h-4 text-teal-400" />, data: created, tone: "rgba(20,184,166,0.08)", actionLabel: (status: TaskStatus) => status === "in_progress" ? "Monitor" : "Open" },
-    { key: "accepted", title: "Assigned To You", icon: <IconCheck className="w-4 h-4 text-green-300" />, data: accepted, tone: "rgba(34,197,94,0.08)", actionLabel: (status: TaskStatus) => status === "in_progress" ? "Continue" : status === "approved" ? "Awaiting Pay" : "Open" },
+    { key: "review",   title: "Needs Your Review",  icon: <IconCheck className="w-4 h-4 text-sky-300" />,    desc: "Submissions waiting for your approval",    data: reviews, tone: "rgba(56,189,248,0.08)",  actionLabel: (status: TaskStatus) => status === "submitted" ? "Review" : "Open" },
+    { key: "payout",   title: "Ready For Payout",   icon: <IconCoin className="w-4 h-4 text-fuchsia-300" />, desc: "Approved work — release payment now",      data: payouts, tone: "rgba(217,70,239,0.08)", actionLabel: () => "Pay Now" },
+    { key: "created",  title: "Created By You",      icon: <IconPlus className="w-4 h-4 text-teal-400" />,   desc: "Tasks you posted to the marketplace",      data: created, tone: "rgba(20,184,166,0.08)", actionLabel: (status: TaskStatus) => status === "in_progress" ? "Monitor" : "Open" },
+    { key: "accepted", title: "Assigned To You",     icon: <IconZap className="w-4 h-4 text-green-300" />,   desc: "Tasks you accepted and are working on",    data: accepted, tone: "rgba(34,197,94,0.08)", actionLabel: (status: TaskStatus) => status === "in_progress" ? "Continue" : status === "approved" ? "Awaiting Pay" : "Open" },
   ];
 
   return (
@@ -76,9 +76,12 @@ export default function MyTasks({ onToast }: Props) {
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-white/[0.08]" style={{ background: section.tone }}>
                     {section.icon}
                   </div>
-                  <h3 className="text-lg font-semibold text-white">
-                    {section.title} <span className="text-sm text-slate-500 font-normal">({section.data.length})</span>
-                  </h3>
+                  <div>
+                    <h3 className="text-base font-semibold text-white">
+                      {section.title} <span className="text-sm text-slate-500 font-normal">({section.data.length})</span>
+                    </h3>
+                    <p className="text-slate-500 text-xs">{section.desc}</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {section.data.map((task) => (
@@ -99,11 +102,14 @@ export default function MyTasks({ onToast }: Props) {
             <section className="flex flex-col gap-4 opacity-60">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-red-400/20" style={{ background: "rgba(248,113,113,0.08)" }}>
-                  <IconSearch className="w-4 h-4 text-red-400" />
+                  <IconX className="w-4 h-4 text-red-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-400">
-                  Cancelled <span className="text-sm text-slate-600 font-normal">({cancelled.length})</span>
-                </h3>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-400">
+                    Cancelled <span className="text-sm text-slate-600 font-normal">({cancelled.length})</span>
+                  </h3>
+                  <p className="text-slate-600 text-xs">Tasks cancelled by the creator</p>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {cancelled.map((task) => (

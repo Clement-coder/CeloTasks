@@ -67,9 +67,9 @@ export default function DashboardPage() {
             <IconWallet className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Wallet</p>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Connected Wallet</p>
             <p className="text-white font-semibold text-xs sm:text-sm font-mono truncate">{shortenAddress(address!)}</p>
-            <p className="text-slate-600 text-[10px] mt-0.5 truncate hidden sm:block">{address}</p>
+            <p className="text-slate-600 text-[10px] mt-0.5">Your active Celo address</p>
           </div>
         </div>
 
@@ -79,12 +79,14 @@ export default function DashboardPage() {
             <IconTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
           </div>
           <div>
-            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Balance</p>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Wallet Balance</p>
             <p className="gradient-text font-bold text-base sm:text-xl leading-none">
               {balance ? `${(Number(balance.value) / 1e18).toFixed(2)}` : "—"}
+              <span className="text-slate-500 text-xs font-normal ml-1">{balance?.symbol ?? "CELO"}</span>
             </p>
-            <p className="text-slate-500 text-[10px] sm:text-xs mt-0.5">{balance?.symbol ?? "CELO"}</p>
-            {cusdBalance && <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{cusdBalance} <span className="text-slate-600">cUSD</span></p>}
+            {cusdBalance
+              ? <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{cusdBalance} <span className="text-slate-600">cUSD available</span></p>
+              : <p className="text-slate-600 text-[10px] mt-0.5">cUSD balance loading…</p>}
           </div>
         </div>
 
@@ -94,15 +96,12 @@ export default function DashboardPage() {
             <IconStar className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Reputation</p>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Reputation Score</p>
             <span className="gradient-text font-bold text-base sm:text-xl leading-none">{stats.successRate}%</span>
             <div className="mt-1.5 h-1 sm:h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${stats.successRate}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e)" }} />
             </div>
-            <div className="flex gap-2 mt-1.5 text-[10px] sm:text-xs text-slate-500 flex-wrap">
-              <span><span className="text-white font-medium">{myAcceptedTasks.length}</span> assigned</span>
-              <span><span className="text-fuchsia-300 font-medium">{paymentQueue.length}</span> to pay</span>
-            </div>
+            <p className="text-slate-600 text-[10px] mt-1">Based on {myAcceptedTasks.length} accepted task{myAcceptedTasks.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
 
@@ -112,12 +111,12 @@ export default function DashboardPage() {
             <IconCoin className="w-4 h-4 sm:w-5 sm:h-5 text-fuchsia-300" />
           </div>
           <div className="flex-1">
-            <p className="text-slate-400 text-[10px] sm:text-xs mb-1 uppercase tracking-wider">Ops</p>
-            <div className="grid grid-cols-2 gap-1.5 sm:gap-3 text-[10px] sm:text-xs text-slate-400">
-              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.openTasks}</p><p>Open</p></div>
-              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.inProgressTasks}</p><p>Active</p></div>
-              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.reviewQueue}</p><p>Review</p></div>
-              <div><p className="text-white text-sm sm:text-lg font-semibold">{stats.readyForPayout}</p><p>Payout</p></div>
+            <p className="text-slate-400 text-[10px] sm:text-xs mb-1 uppercase tracking-wider">Task Overview</p>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+              <div><p className="text-white text-sm sm:text-base font-semibold">{stats.openTasks}</p><p className="text-slate-500">Open</p></div>
+              <div><p className="text-white text-sm sm:text-base font-semibold">{stats.inProgressTasks}</p><p className="text-slate-500">Active</p></div>
+              <div><p className="text-sky-300 text-sm sm:text-base font-semibold">{stats.reviewQueue}</p><p className="text-slate-500">Review</p></div>
+              <div><p className="text-fuchsia-300 text-sm sm:text-base font-semibold">{stats.readyForPayout}</p><p className="text-slate-500">Payout</p></div>
             </div>
           </div>
         </div>
