@@ -18,12 +18,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico",   sizes: "any" },
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icon-192.png",   sizes: "192x192", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
-    shortcut: "/favicon-32.png",
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     title: "CeloTasks",
@@ -44,6 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="h-full">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -56,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ServiceWorkerRegistration />
           <OfflineBanner />
           <Navbar />
-          <main className="min-h-screen pb-16 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
+          <main className="min-h-screen pb-20 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
           <BottomNav />
           <InstallPrompt />
         </Providers>

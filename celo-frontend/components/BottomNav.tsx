@@ -26,8 +26,8 @@ export default function BottomNav() {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08]"
-      style={{ background: "rgba(11,15,20,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
-      <div className="flex items-center justify-around h-16 relative">
+      style={{ background: "rgba(11,15,20,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+      <div className="flex items-center justify-around h-16" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {LEFT.map(({ href, label, Icon }) => (
           <Link key={href} href={href} className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${isActive(href) ? "text-teal-400" : "text-slate-500"}`}>
             <div className="relative">

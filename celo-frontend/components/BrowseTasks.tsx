@@ -3,16 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
-import { IconPlus, IconSearch } from "@/components/Icons";
+import { IconPlus, IconSearch, IconTrendingUp, IconStar, IconCoin, IconClock } from "@/components/Icons";
 import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
 import { type ToastType } from "@/hooks/useToast";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import CustomSelect from "@/components/CustomSelect";
 
 interface Props {
   onToast: (msg: string, type?: ToastType) => void;
 }
 
 const SORTS = ["Newest", "Reward ↑", "Reward ↓", "Deadline Soon"];
+const SORT_OPTIONS = [
+  { value: "Newest",        label: "Newest first",      icon: IconClock },
+  { value: "Reward ↑",      label: "Reward: Low → High", icon: IconCoin },
+  { value: "Reward ↓",      label: "Reward: High → Low", icon: IconCoin },
+  { value: "Deadline Soon", label: "Deadline: Soonest",  icon: IconTrendingUp },
+];
 
 export default function BrowseTasks({ onToast }: Props) {
   const { browseTasks, acceptTask, profile } = useTaskStore();
@@ -125,20 +132,17 @@ export default function BrowseTasks({ onToast }: Props) {
                 className="w-20 px-3 py-2.5 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               />
-              <select
+              <CustomSelect
                 value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="px-3 py-2.5 rounded-2xl text-sm text-slate-300 focus:outline-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
-                {SORTS.map((item) => (
-                  <option key={item} value={item} style={{ background: "#0b0f14" }}>{item}</option>
-                ))}
-              </select>
+                onChange={setSort}
+                options={SORT_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+                className="w-44"
+              />
             </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-slate-500 text-xs flex items-center gap-1"><IconSearch className="w-3 h-3" />Category:</span>
             {["All", ...TASK_CATEGORIES].map((item) => (
               <button key={item} onClick={() => setCategory(item)}
                 className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
@@ -147,7 +151,8 @@ export default function BrowseTasks({ onToast }: Props) {
             ))}
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-slate-500 text-xs flex items-center gap-1"><IconStar className="w-3 h-3" />Difficulty:</span>
             {["All", ...TASK_DIFFICULTIES].map((item) => (
               <button key={item} onClick={() => setDifficulty(item)}
                 className={`text-xs px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
