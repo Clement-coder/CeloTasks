@@ -111,17 +111,11 @@ export default function Home() {
           </div>
 
           {/* Logo + headline */}
-          <div className="fade-up fade-up-delay-1 flex flex-col items-center gap-5">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden ring-1 ring-teal-500/25"
-              style={{ boxShadow: "0 0 48px rgba(20,184,166,0.2)" }}>
-              <Image src="/celoTasklogo.png" alt="CeloTasks" width={80} height={80} className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight">
-                Micro tasks.<br />
-                <span className="gradient-text">Instant pay.</span>
-              </h1>
-            </div>
+          <div className="fade-up fade-up-delay-1">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight">
+              Micro tasks.<br />
+              <span className="gradient-text">Instant pay.</span>
+            </h1>
           </div>
 
           <p className="fade-up fade-up-delay-2 text-lg sm:text-xl text-slate-400 max-w-md leading-relaxed">
