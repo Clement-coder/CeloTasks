@@ -18,7 +18,7 @@ export default function CompleteProfileModal({ open, onClose }: Props) {
 
   async function handleSave() {
     setError("");
-    if (!name.trim()) { setError("Display name is required"); return; }
+    if (!name.trim() && !profile?.displayName) { setError("Display name is required"); return; }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Invalid email address"); return; }
     setSaving(true);
     try {
