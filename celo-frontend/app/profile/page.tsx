@@ -45,34 +45,36 @@ export default function ProfilePage() {
 
       {/* ── KYC banner ── */}
       {authenticated && !isVerified && (
-        <div className="rounded-2xl px-5 py-4 border border-sky-400/20 flex items-center justify-between gap-4"
+        <div className="rounded-2xl px-5 py-4 border border-sky-400/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
           style={{ background: "rgba(56,189,248,0.07)" }}>
-          <div className="flex items-center gap-3">
-            <IconShield className="w-5 h-5 text-sky-400 shrink-0" />
+          <div className="flex items-start gap-3">
+            <IconShield className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-sky-300 text-sm font-semibold">Identity not verified</p>
               <p className="text-slate-400 text-xs mt-0.5">Complete KYC to unlock task creation and acceptance.</p>
             </div>
           </div>
-          <KYCButton
-            wallet={address ?? null}
-            onSuccess={(vid) => addToast(`Verification successful ✅ (ID: ${vid.slice(0, 8)}…)`, "success")}
-            onFailure={() => addToast("Verification failed. Please try again.", "error")}
-          />
+          <div className="self-start sm:self-auto shrink-0">
+            <KYCButton
+              wallet={address ?? null}
+              onSuccess={(vid) => addToast(`Verification successful ✅ (ID: ${vid.slice(0, 8)}…)`, "success")}
+              onFailure={() => addToast("Verification failed. Please try again.", "error")}
+            />
+          </div>
         </div>
       )}
       {isProfileIncomplete && (
-        <div className="rounded-2xl px-5 py-4 border border-amber-400/20 flex items-center justify-between gap-4"
+        <div className="rounded-2xl px-5 py-4 border border-amber-400/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
           style={{ background: "rgba(234,179,8,0.07)" }}>
-          <div className="flex items-center gap-3">
-            <IconUsers className="w-5 h-5 text-amber-400 shrink-0" />
+          <div className="flex items-start gap-3">
+            <IconUsers className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-amber-300 text-sm font-semibold">Complete your profile</p>
               <p className="text-slate-400 text-xs mt-0.5">Add your name and email so task creators and workers can identify you.</p>
             </div>
           </div>
           <button onClick={() => setProfileOpen(true)}
-            className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer shrink-0">
+            className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer shrink-0 self-start sm:self-auto">
             Complete Profile
           </button>
         </div>

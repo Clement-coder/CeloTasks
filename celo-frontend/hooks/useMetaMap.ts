@@ -81,5 +81,5 @@ export function useMetaMap(wallet: string | null) {
     }
   }, [wallet, persist]);
 
-  return { isVerified, verificationId, loading, launch };
+  return { isVerified, verificationId, loading, launch, persist };
 }
