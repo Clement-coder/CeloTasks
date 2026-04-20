@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import InstallPrompt from "@/components/InstallPrompt";
 import OfflineBanner from "@/components/OfflineBanner";
+import AiChat from "@/components/AiChat";
 
 export const metadata: Metadata = {
   title: "CeloTasks — Micro tasks. Instant pay. Onchain reputation.",
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="min-h-screen pb-20 md:pb-0" style={{ background: "#0b0f14" }}>{children}</main>
           <BottomNav />
           <InstallPrompt />
+          <AiChat />
         </Providers>
       </body>
     </html>
