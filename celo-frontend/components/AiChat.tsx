@@ -34,25 +34,19 @@ export default function AiChat() {
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
-      // Prepend system context as first user/model exchange
       const contents = [
         { role: "user", parts: [{ text: SYSTEM_CONTEXT }] },
         { role: "model", parts: [{ text: "Understood. I'm ready to help CeloTasks users." }] },
         ...history,
       ];
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents }),
-        }
-      );
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents }),
+      });
       const data = await res.json();
-      const reply =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "Sorry, I couldn't get a response. Please try again.";
-      setMessages([...next, { role: "assistant", text: reply }]);
+      setMessages([...next, { role: "assistant", text: data.text }]);
     } catch {
       setMessages([...next, { role: "assistant", text: "Network error. Please try again." }]);
     } finally {
