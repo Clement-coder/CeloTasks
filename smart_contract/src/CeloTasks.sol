@@ -110,12 +110,15 @@ contract CeloTasks {
         emit TaskCreated(taskId, msg.sender, reward, metadataUri);
     }
 
-    /// @notice Creator selects a worker from applicants (applicant list is off-chain).
+    /// @notice Creator selects a worker from applicants (applicant list managed off-chain in Supabase).
+    ///         Worker address must be non-zero.
     function assignWorker(uint256 taskId, address worker)
         external
         onlyCreator(taskId)
         inStatus(taskId, Status.Open)
     {
+        require(worker != address(0), "worker cannot be zero address");
+        require(worker != tasks[taskId].creator, "creator cannot be own worker");
         tasks[taskId].worker = worker;
         tasks[taskId].status = Status.InProgress;
         emit WorkerAssigned(taskId, worker);
