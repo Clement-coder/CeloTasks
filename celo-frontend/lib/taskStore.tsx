@@ -301,6 +301,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const createTask = useCallback(async (input: CreateTaskInput): Promise<string> => {
     const db = getSupabase();
     await ensureProfile(currentUser);
+
+    // 1. Insert into Supabase first to get the UUID
     const { data, error } = await db.from("tasks").insert({
       title:            input.title,
       description:      input.description,
@@ -315,11 +317,55 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       submission_guide: input.submissionGuide,
       tags:             input.tags,
       status:           "open",
+      contract_address: CELOTASKS_ADDRESS,
     }).select().single();
     if (error) throw error;
+
+    // 2. Call contract onchain if wallet is connected
+    if (walletClient && publicClient) {
+      try {
+        const rewardWei = parseEther(input.reward);
+        const deadlineUnix = Math.floor(new Date(input.deadline).getTime() / 1000);
+
+        // approve cUSD
+        const approveTx = await walletClient.writeContract({
+          address: CUSD_ADDRESS, abi: CUSD_ABI, functionName: "approve",
+          args: [CELOTASKS_ADDRESS, rewardWei],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+        // create onchain
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "createTask",
+          args: [rewardWei, BigInt(deadlineUnix), data.id],
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
+
+        // parse TaskCreated event to get chain taskId
+        let chainTaskId: string | undefined;
+        for (const log of receipt.logs) {
+          try {
+            const decoded = decodeEventLog({ abi: CELOTASKS_ABI, ...log });
+            if (decoded.eventName === "TaskCreated") {
+              chainTaskId = String((decoded.args as { taskId: bigint }).taskId);
+              break;
+            }
+          } catch { /* skip non-matching logs */ }
+        }
+
+        // save tx_hash and chain_task_id back to Supabase
+        await db.from("tasks").update({
+          tx_hash:       receipt.transactionHash,
+          chain_task_id: chainTaskId ?? null,
+        }).eq("id", data.id);
+      } catch (contractErr) {
+        console.error("[createTask] contract call failed, task saved off-chain only:", contractErr);
+      }
+    }
+
     await appendActivity(data.id, input.title, "created", currentUser, "Published a new task.");
     return data.id as string;
-  }, [currentUser]);
+  }, [currentUser, walletClient, publicClient]);
 
   const acceptTask = useCallback(async (id: string): Promise<void> => {
     const db = getSupabase();
