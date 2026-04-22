@@ -211,6 +211,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading]   = useState(true);
   const [profile, setProfile]   = useState<UserProfile | null>(null);
 
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+
   const currentUser = myAddress?.toLowerCase() ?? FALLBACK_USER;
 
   // ── Fetch all data ──────────────────────────────────────────────────────────
