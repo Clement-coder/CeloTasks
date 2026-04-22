@@ -84,12 +84,15 @@ contract CeloTasks {
     // ── Write functions ────────────────────────────────────────────────────────
 
     /// @notice Creator posts a task and deposits cUSD reward into escrow.
-    /// @dev Caller must approve(address(this), reward) on cUSD before calling.
+    /// @dev Caller must first call cUSD.approve(address(this), reward).
+    ///      reward must be > 0 and deadline must be in the future.
     function createTask(
         uint256 reward,
         uint256 deadline,
         string calldata metadataUri
     ) external returns (uint256 taskId) {
+        require(reward > 0, "reward must be > 0");
+        require(deadline > block.timestamp, "deadline must be in the future");
         taskId = ++taskCount;
         tasks[taskId] = Task({
             id:            taskId,
