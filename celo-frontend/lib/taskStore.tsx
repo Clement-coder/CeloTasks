@@ -449,8 +449,19 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (!task) return;
     const { error } = await db.from("tasks").update({ status: "approved", approved_at: new Date().toISOString(), creator_feedback: null }).eq("id", id);
     if (error) throw error;
+
+    if (walletClient && publicClient && task.chainTaskId) {
+      try {
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "approveTask",
+          args: [BigInt(task.chainTaskId)],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      } catch (e) { console.error("[approveTask] contract call failed:", e); }
+    }
+
     await appendActivity(id, task.title, "approved", currentUser, "Approved the submission and queued payment.");
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const releasePayment = useCallback(async (id: string): Promise<void> => {
     const db = getSupabase();
