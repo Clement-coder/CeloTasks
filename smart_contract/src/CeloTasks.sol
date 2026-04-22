@@ -204,11 +204,24 @@ contract CeloTasks {
 
     // ── View functions ─────────────────────────────────────────────────────────
 
+    /// @notice Returns the full Task struct for a given taskId.
     function getTask(uint256 taskId) external view returns (Task memory) {
         return tasks[taskId];
     }
 
+    /// @notice Returns just the status enum for a given taskId.
     function getStatus(uint256 taskId) external view returns (Status) {
         return tasks[taskId].status;
+    }
+
+    /// @notice Returns the revision count for a given taskId.
+    function getRevisionCount(uint256 taskId) external view returns (uint8) {
+        return tasks[taskId].revisionCount;
+    }
+
+    /// @notice Returns true if the timeout window has passed for a submitted task.
+    function isTimedOut(uint256 taskId) external view returns (bool) {
+        Task storage t = tasks[taskId];
+        return t.status == Status.Submitted && block.timestamp >= t.submittedAt + TIMEOUT;
     }
 }
