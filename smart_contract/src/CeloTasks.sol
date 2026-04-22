@@ -163,6 +163,7 @@ contract CeloTasks {
     }
 
     /// @notice Creator releases escrowed cUSD to the worker.
+    ///         Marks task as Paid and transfers reward. Final state — irreversible.
     function releasePayment(uint256 taskId)
         external
         onlyCreator(taskId)
