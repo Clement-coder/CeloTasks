@@ -117,3 +117,31 @@ contract TestCreateTask is CeloTasksTest {
         vm.stopPrank();
     }
 }
+
+// ─── test_AssignWorker ────────────────────────────────────────────────────────
+
+contract TestAssignWorker is CeloTasksTest {
+    function test_AssignWorker() public {
+        uint256 taskId = _createTask();
+        vm.prank(creator);
+        ct.assignWorker(taskId, worker);
+
+        CeloTasks.Task memory t = ct.getTask(taskId);
+        assertEq(t.worker, worker);
+        assertEq(uint8(t.status), uint8(CeloTasks.Status.InProgress));
+    }
+
+    function test_AssignWorker_RevertNotCreator() public {
+        uint256 taskId = _createTask();
+        vm.prank(other);
+        vm.expectRevert(CeloTasks.NotCreator.selector);
+        ct.assignWorker(taskId, worker);
+    }
+
+    function test_AssignWorker_RevertSelfAssign() public {
+        uint256 taskId = _createTask();
+        vm.prank(creator);
+        vm.expectRevert(bytes("creator cannot be own worker"));
+        ct.assignWorker(taskId, creator);
+    }
+}
