@@ -9,6 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { getSupabase } from "@/utils/supabase/client";
+import { useWalletClient, usePublicClient } from "wagmi";
+import { parseEther, decodeEventLog } from "viem";
+import { CELOTASKS_ABI, CELOTASKS_ADDRESS, CUSD_ABI, CUSD_ADDRESS } from "@/lib/abi";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
