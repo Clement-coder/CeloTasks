@@ -151,7 +151,8 @@ contract CeloTasks {
         emit RevisionRequested(taskId, tasks[taskId].revisionCount);
     }
 
-    /// @notice Creator approves the submission.
+    /// @notice Creator approves the submission, moving task to Approved.
+    ///         Creator must then call releasePayment to transfer cUSD to worker.
     function approveTask(uint256 taskId)
         external
         onlyCreator(taskId)
