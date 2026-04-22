@@ -188,7 +188,8 @@ contract CeloTasks {
         emit TaskCancelled(taskId);
     }
 
-    /// @notice Worker claims payment if creator hasn't responded within TIMEOUT after submission.
+    /// @notice Worker claims payment if creator hasn't responded within TIMEOUT (7 days) after submission.
+    ///         Protects workers from creators who ghost after work is delivered.
     function claimAfterTimeout(uint256 taskId)
         external
         onlyWorker(taskId)
