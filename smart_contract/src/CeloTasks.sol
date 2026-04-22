@@ -176,7 +176,8 @@ contract CeloTasks {
     }
 
     /// @notice Creator cancels the task and gets escrowed cUSD refunded.
-    ///         Only allowed when Open or InProgress (before submission).
+    ///         Allowed only when Open (no worker yet) or InProgress (before submission).
+    ///         Once work is submitted the creator must approve or request revision.
     function cancelTask(uint256 taskId) external onlyCreator(taskId) {
         Status s = tasks[taskId].status;
         if (s != Status.Open && s != Status.InProgress) {
