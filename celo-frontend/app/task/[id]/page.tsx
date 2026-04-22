@@ -36,7 +36,7 @@ const STATUS_LABELS = {
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant } = useTaskStore();
+  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -300,6 +300,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 >
                   Creator not responding? Flag for dispute
                 </button>
+                {task.chainTaskId && (
+                  <button
+                    disabled={loading}
+                    onClick={() => runAction(() => claimAfterTimeout(task.id), "Payment claimed after 7-day timeout.")}
+                    className="mt-2 text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors underline underline-offset-2 cursor-pointer disabled:opacity-50"
+                  >
+                    Claim payment after 7-day timeout
+                  </button>
+                )}
               </div>
             )}
 
