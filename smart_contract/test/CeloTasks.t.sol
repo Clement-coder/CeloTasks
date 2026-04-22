@@ -145,3 +145,32 @@ contract TestAssignWorker is CeloTasksTest {
         ct.assignWorker(taskId, creator);
     }
 }
+
+// ─── test_SubmitWork ──────────────────────────────────────────────────────────
+
+contract TestSubmitWork is CeloTasksTest {
+    function test_SubmitWork() public {
+        uint256 taskId = _assignedTask();
+        vm.prank(worker);
+        ct.submitWork(taskId, PROOF);
+
+        CeloTasks.Task memory t = ct.getTask(taskId);
+        assertEq(uint8(t.status), uint8(CeloTasks.Status.Submitted));
+        assertEq(t.proofUri, PROOF);
+        assertGt(t.submittedAt, 0);
+    }
+
+    function test_SubmitWork_RevertNotWorker() public {
+        uint256 taskId = _assignedTask();
+        vm.prank(other);
+        vm.expectRevert(CeloTasks.NotWorker.selector);
+        ct.submitWork(taskId, PROOF);
+    }
+
+    function test_SubmitWork_RevertEmptyProof() public {
+        uint256 taskId = _assignedTask();
+        vm.prank(worker);
+        vm.expectRevert(bytes("proofUri cannot be empty"));
+        ct.submitWork(taskId, "");
+    }
+}
