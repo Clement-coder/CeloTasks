@@ -1,6 +1,7 @@
 "use client";
 import { IconCheck, IconCoin, IconUsers, IconZap } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
+import { useOnchainStats } from "@/hooks/useOnchainStats";
 
 const STATS = [
   { icon: IconCheck, label: "Tasks Completed", desc: "Total paid tasks",        color: "text-teal-400",    bg: "rgba(20,184,166,0.1)",  border: "rgba(20,184,166,0.2)" },
@@ -11,12 +12,13 @@ const STATS = [
 
 export default function LiveStats() {
   const { tasks, activity } = useTaskStore();
+  const { onchainTaskCount } = useOnchainStats();
   const paid = tasks.filter((t) => t.status === "paid");
   const totalEarnings = paid.reduce((sum, t) => sum + Number(t.reward), 0);
   const uniqueUsers = new Set(tasks.flatMap((t) => [t.creator, t.acceptor].filter(Boolean))).size;
 
   const values = [
-    `${activity.length}+`,
+    onchainTaskCount !== null ? `${onchainTaskCount}` : `${activity.length}+`,
     `$${totalEarnings.toFixed(0)}+`,
     `${uniqueUsers}+`,
     "< 3s",
