@@ -82,3 +82,38 @@ contract CeloTasksTest is Test {
         ct.submitWork(taskId, PROOF);
     }
 }
+
+// ─── test_CreateTask ──────────────────────────────────────────────────────────
+
+contract TestCreateTask is CeloTasksTest {
+    function test_CreateTask() public {
+        uint256 taskId = _createTask();
+
+        CeloTasks.Task memory t = ct.getTask(taskId);
+        assertEq(t.id,      taskId);
+        assertEq(t.creator, creator);
+        assertEq(t.reward,  REWARD);
+        assertEq(uint8(t.status), uint8(CeloTasks.Status.Open));
+        assertEq(t.metadataUri, META);
+
+        // escrow: contract holds the reward
+        assertEq(cusd.balanceOf(address(ct)), REWARD);
+        assertEq(cusd.balanceOf(creator),     100e18 - REWARD);
+    }
+
+    function test_CreateTask_RevertZeroReward() public {
+        vm.startPrank(creator);
+        cusd.approve(address(ct), 0);
+        vm.expectRevert(bytes("reward must be > 0"));
+        ct.createTask(0, block.timestamp + 1 days, META);
+        vm.stopPrank();
+    }
+
+    function test_CreateTask_RevertPastDeadline() public {
+        vm.startPrank(creator);
+        cusd.approve(address(ct), REWARD);
+        vm.expectRevert(bytes("deadline must be in the future"));
+        ct.createTask(REWARD, block.timestamp - 1, META);
+        vm.stopPrank();
+    }
+}
