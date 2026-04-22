@@ -406,8 +406,21 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (subError) throw subError;
     const { error } = await db.from("tasks").update({ status: "submitted", creator_feedback: null }).eq("id", id);
     if (error) throw error;
+
+    // call contract submitWork with proof link as proofUri
+    if (walletClient && publicClient && task.chainTaskId) {
+      try {
+        const proofUri = payload.proofLink || payload.proofText.slice(0, 200);
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "submitWork",
+          args: [BigInt(task.chainTaskId), proofUri],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      } catch (e) { console.error("[submitTask] contract call failed:", e); }
+    }
+
     await appendActivity(id, task.title, "submitted", currentUser, "Submitted work proof for creator review.");
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const requestRevision = useCallback(async (id: string, feedback: string): Promise<void> => {
     const db = getSupabase();
