@@ -479,8 +479,20 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (!task) return;
     const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant }).eq("id", taskId);
     if (error) throw error;
+
+    // call contract if task has a chain_task_id
+    if (walletClient && publicClient && task.chainTaskId) {
+      try {
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "assignWorker",
+          args: [BigInt(task.chainTaskId), applicant as `0x${string}`],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      } catch (e) { console.error("[selectApplicant] contract call failed:", e); }
+    }
+
     await appendActivity(taskId, task.title, "accepted", applicant, "Selected by creator to work on this task.");
-  }, [tasks]);
+  }, [tasks, walletClient, publicClient]);
 
   const getTask = useCallback((id: string) => tasks.find((t) => t.id === id), [tasks]);
 
