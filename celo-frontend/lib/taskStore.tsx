@@ -125,6 +125,7 @@ interface TaskStore {
   editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>) => Promise<void>;
   applyToTask: (id: string, note: string) => Promise<void>;
   selectApplicant: (taskId: string, applicant: string) => Promise<void>;
+  claimAfterTimeout: (id: string) => Promise<void>;
   getTask: (id: string) => Task | undefined;
   browseTasks: Task[];
   myCreatedTasks: Task[];
@@ -564,6 +565,20 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const getTask = useCallback((id: string) => tasks.find((t) => t.id === id), [tasks]);
 
+  const claimAfterTimeout = useCallback(async (id: string): Promise<void> => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task?.chainTaskId) throw new Error("No onchain task ID found.");
+    if (!walletClient || !publicClient) throw new Error("Wallet not connected.");
+    const tx = await walletClient.writeContract({
+      address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "claimAfterTimeout",
+      args: [BigInt(task.chainTaskId)],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: tx });
+    const db = getSupabase();
+    await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    await appendActivity(id, task.title, "paid", currentUser, "Payment claimed after creator timeout.");
+  }, [tasks, currentUser, walletClient, publicClient]);
+
   // ── Derived state ────────────────────────────────────────────────────────────
 
   const browseTasks     = tasks.filter((t) => t.status === "open" && t.creator !== currentUser);
@@ -592,7 +607,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       tasks, activity, myAddress, currentUser, loading, profile,
       setMyAddress, updateProfile, createTask, acceptTask, submitTask,
       requestRevision, approveTask, releasePayment, cancelTask,
-      editTask, applyToTask, selectApplicant, getTask,
+      editTask, applyToTask, selectApplicant, getTask, claimAfterTimeout,
       browseTasks, myCreatedTasks, myAcceptedTasks,
       reviewQueue, paymentQueue, stats,
     }}>
