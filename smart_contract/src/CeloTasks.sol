@@ -139,6 +139,7 @@ contract CeloTasks {
     }
 
     /// @notice Creator requests a revision — sends task back to InProgress.
+    ///         Capped at MAX_REVISIONS (3). After cap, creator must approve or cancel.
     function requestRevision(uint256 taskId)
         external
         onlyCreator(taskId)
