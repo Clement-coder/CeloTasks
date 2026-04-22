@@ -168,6 +168,9 @@ function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], s
     applications:    apps,
     submission:      sub,
     revisionCount:   (row.revision_count as number) ?? 0,
+    chainTaskId:     (row.chain_task_id as string) ?? undefined,
+    txHash:          (row.tx_hash as string) ?? undefined,
+    contractAddress: (row.contract_address as string) ?? undefined,
   };
 }
 
