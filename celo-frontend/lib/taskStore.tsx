@@ -498,10 +498,21 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
+
+    if (walletClient && publicClient && task.chainTaskId) {
+      try {
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "cancelTask",
+          args: [BigInt(task.chainTaskId)],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      } catch (e) { console.error("[cancelTask] contract call failed:", e); }
+    }
+
     const { error } = await db.from("tasks").update({ status: "cancelled" }).eq("id", id);
     if (error) throw error;
     await appendActivity(id, task.title, "cancelled", currentUser, "Task cancelled by creator.");
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>): Promise<void> => {
     const db = getSupabase();
