@@ -200,3 +200,31 @@ contract TestRequestRevision is CeloTasksTest {
         assertEq(ct.getRevisionCount(taskId), 3);
     }
 }
+
+// ─── test_ApproveAndRelease ───────────────────────────────────────────────────
+
+contract TestApproveAndRelease is CeloTasksTest {
+    function test_ApproveAndRelease() public {
+        uint256 taskId = _submittedTask();
+
+        vm.prank(creator);
+        ct.approveTask(taskId);
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Approved));
+
+        vm.prank(creator);
+        ct.releasePayment(taskId);
+
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Paid));
+        // worker received the reward
+        assertEq(cusd.balanceOf(worker), REWARD);
+        // contract escrow is empty
+        assertEq(cusd.balanceOf(address(ct)), 0);
+    }
+
+    function test_ReleasePayment_RevertNotApproved() public {
+        uint256 taskId = _submittedTask();
+        vm.prank(creator);
+        vm.expectRevert();
+        ct.releasePayment(taskId); // status is Submitted, not Approved
+    }
+}
