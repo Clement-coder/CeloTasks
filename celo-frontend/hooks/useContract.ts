@@ -40,5 +40,18 @@ export function useContract() {
     [walletClient, publicClient],
   );
 
-  return { createTask, assignWorker };
+  // ── submitWork ────────────────────────────────────────────────────────────
+  const submitWork = useCallback(
+    async (chainTaskId: bigint, proofUri: string) => {
+      if (!walletClient || !publicClient) throw new Error("Wallet not connected");
+      const tx = await walletClient.writeContract({
+        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "submitWork",
+        args: [chainTaskId, proofUri],
+      });
+      return publicClient.waitForTransactionReceipt({ hash: tx });
+    },
+    [walletClient, publicClient],
+  );
+
+  return { createTask, assignWorker, submitWork };
 }
