@@ -287,3 +287,24 @@ contract TestClaimAfterTimeout is CeloTasksTest {
         ct.claimAfterTimeout(taskId);
     }
 }
+
+// ─── test_RevisionCapReverts ──────────────────────────────────────────────────
+
+contract TestRevisionCap is CeloTasksTest {
+    function test_RevisionCapReverts() public {
+        uint256 taskId = _submittedTask();
+
+        // Use all 3 revisions
+        for (uint8 i = 0; i < 3; i++) {
+            vm.prank(creator);
+            ct.requestRevision(taskId);
+            vm.prank(worker);
+            ct.submitWork(taskId, PROOF);
+        }
+
+        // 4th revision must revert
+        vm.prank(creator);
+        vm.expectRevert(CeloTasks.MaxRevisionsReached.selector);
+        ct.requestRevision(taskId);
+    }
+}
