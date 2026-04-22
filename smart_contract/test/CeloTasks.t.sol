@@ -228,3 +228,33 @@ contract TestApproveAndRelease is CeloTasksTest {
         ct.releasePayment(taskId); // status is Submitted, not Approved
     }
 }
+
+// ─── test_CancelTask ──────────────────────────────────────────────────────────
+
+contract TestCancelTask is CeloTasksTest {
+    function test_CancelTask_WhenOpen() public {
+        uint256 taskId = _createTask();
+        uint256 balBefore = cusd.balanceOf(creator);
+
+        vm.prank(creator);
+        ct.cancelTask(taskId);
+
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Cancelled));
+        // creator gets refund
+        assertEq(cusd.balanceOf(creator), balBefore + REWARD);
+    }
+
+    function test_CancelTask_WhenInProgress() public {
+        uint256 taskId = _assignedTask();
+        vm.prank(creator);
+        ct.cancelTask(taskId);
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Cancelled));
+    }
+
+    function test_CancelTask_RevertAfterSubmission() public {
+        uint256 taskId = _submittedTask();
+        vm.prank(creator);
+        vm.expectRevert();
+        ct.cancelTask(taskId);
+    }
+}
