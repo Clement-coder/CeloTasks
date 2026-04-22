@@ -467,10 +467,32 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
+
+    // contract call FIRST — this is the real money transfer
+    if (walletClient && publicClient && task.chainTaskId) {
+      const tx = await walletClient.writeContract({
+        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "releasePayment",
+        args: [BigInt(task.chainTaskId)],
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
+
+      // save payment audit record
+      await db.from("onchain_payments").insert({
+        task_id:       id,
+        chain_task_id: task.chainTaskId,
+        tx_hash:       receipt.transactionHash,
+        from_address:  currentUser,
+        to_address:    task.acceptor ?? "",
+        amount_wei:    parseEther(task.reward).toString(),
+        amount_cusd:   Number(task.reward),
+        block_number:  Number(receipt.blockNumber),
+      }).select();
+    }
+
     const { error } = await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
     if (error) throw error;
     await appendActivity(id, task.title, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`);
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const cancelTask = useCallback(async (id: string): Promise<void> => {
     const db = getSupabase();
