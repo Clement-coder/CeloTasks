@@ -258,3 +258,32 @@ contract TestCancelTask is CeloTasksTest {
         ct.cancelTask(taskId);
     }
 }
+
+// ─── test_ClaimAfterTimeout ───────────────────────────────────────────────────
+
+contract TestClaimAfterTimeout is CeloTasksTest {
+    function test_ClaimAfterTimeout() public {
+        uint256 taskId = _submittedTask();
+
+        // fast-forward 7 days + 1 second
+        vm.warp(block.timestamp + 7 days + 1);
+
+        assertTrue(ct.isTimedOut(taskId));
+
+        vm.prank(worker);
+        ct.claimAfterTimeout(taskId);
+
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Paid));
+        assertEq(cusd.balanceOf(worker), REWARD);
+    }
+
+    function test_ClaimAfterTimeout_RevertTooEarly() public {
+        uint256 taskId = _submittedTask();
+
+        vm.warp(block.timestamp + 6 days);
+
+        vm.prank(worker);
+        vm.expectRevert(CeloTasks.TimeoutNotReached.selector);
+        ct.claimAfterTimeout(taskId);
+    }
+}
