@@ -79,5 +79,44 @@ export function useContract() {
     [walletClient, publicClient],
   );
 
-  return { createTask, assignWorker, submitWork, requestRevision, approveTask };
+  // ── releasePayment ────────────────────────────────────────────────────────
+  const releasePayment = useCallback(
+    async (chainTaskId: bigint) => {
+      if (!walletClient || !publicClient) throw new Error("Wallet not connected");
+      const tx = await walletClient.writeContract({
+        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "releasePayment",
+        args: [chainTaskId],
+      });
+      return publicClient.waitForTransactionReceipt({ hash: tx });
+    },
+    [walletClient, publicClient],
+  );
+
+  // ── cancelTask ────────────────────────────────────────────────────────────
+  const cancelTask = useCallback(
+    async (chainTaskId: bigint) => {
+      if (!walletClient || !publicClient) throw new Error("Wallet not connected");
+      const tx = await walletClient.writeContract({
+        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "cancelTask",
+        args: [chainTaskId],
+      });
+      return publicClient.waitForTransactionReceipt({ hash: tx });
+    },
+    [walletClient, publicClient],
+  );
+
+  // ── claimAfterTimeout ─────────────────────────────────────────────────────
+  const claimAfterTimeout = useCallback(
+    async (chainTaskId: bigint) => {
+      if (!walletClient || !publicClient) throw new Error("Wallet not connected");
+      const tx = await walletClient.writeContract({
+        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "claimAfterTimeout",
+        args: [chainTaskId],
+      });
+      return publicClient.waitForTransactionReceipt({ hash: tx });
+    },
+    [walletClient, publicClient],
+  );
+
+  return { createTask, assignWorker, submitWork, requestRevision, approveTask, releasePayment, cancelTask, claimAfterTimeout };
 }
