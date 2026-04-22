@@ -124,12 +124,14 @@ contract CeloTasks {
         emit WorkerAssigned(taskId, worker);
     }
 
-    /// @notice Worker submits proof of work.
+    /// @notice Worker submits proof of work. proofUri is an IPFS CID or URL.
+    ///         Records submittedAt timestamp used for timeout enforcement.
     function submitWork(uint256 taskId, string calldata proofUri)
         external
         onlyWorker(taskId)
         inStatus(taskId, Status.InProgress)
     {
+        require(bytes(proofUri).length > 0, "proofUri cannot be empty");
         tasks[taskId].proofUri     = proofUri;
         tasks[taskId].submittedAt  = block.timestamp;
         tasks[taskId].status       = Status.Submitted;
