@@ -329,3 +329,24 @@ contract TestOnlyCreatorCanApprove is CeloTasksTest {
         assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Approved));
     }
 }
+
+// ─── test_OnlyWorkerCanSubmit ─────────────────────────────────────────────────
+
+contract TestOnlyWorkerCanSubmit is CeloTasksTest {
+    function test_OnlyWorkerCanSubmit() public {
+        uint256 taskId = _assignedTask();
+
+        vm.prank(creator);
+        vm.expectRevert(CeloTasks.NotWorker.selector);
+        ct.submitWork(taskId, PROOF);
+
+        vm.prank(other);
+        vm.expectRevert(CeloTasks.NotWorker.selector);
+        ct.submitWork(taskId, PROOF);
+
+        // assigned worker can submit
+        vm.prank(worker);
+        ct.submitWork(taskId, PROOF);
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Submitted));
+    }
+}
