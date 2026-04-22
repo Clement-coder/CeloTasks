@@ -308,3 +308,24 @@ contract TestRevisionCap is CeloTasksTest {
         ct.requestRevision(taskId);
     }
 }
+
+// ─── test_OnlyCreatorCanApprove ───────────────────────────────────────────────
+
+contract TestOnlyCreatorCanApprove is CeloTasksTest {
+    function test_OnlyCreatorCanApprove() public {
+        uint256 taskId = _submittedTask();
+
+        vm.prank(worker);
+        vm.expectRevert(CeloTasks.NotCreator.selector);
+        ct.approveTask(taskId);
+
+        vm.prank(other);
+        vm.expectRevert(CeloTasks.NotCreator.selector);
+        ct.approveTask(taskId);
+
+        // creator can approve
+        vm.prank(creator);
+        ct.approveTask(taskId);
+        assertEq(uint8(ct.getStatus(taskId)), uint8(CeloTasks.Status.Approved));
+    }
+}
