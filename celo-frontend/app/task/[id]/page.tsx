@@ -359,6 +359,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <p className="text-sm text-slate-200 leading-relaxed">
                   Payment has been released. This task is fully complete.
                 </p>
+                {task.txHash && (
+                  <a
+                    href={`https://celoscan.io/tx/${task.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs text-fuchsia-400 hover:text-fuchsia-300 underline underline-offset-2"
+                  >
+                    View payment on Celoscan <IconExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
               </div>
             )}
 
