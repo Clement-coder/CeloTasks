@@ -63,6 +63,10 @@ export interface Task {
   paidAt?: string;
   applications?: TaskApplication[];
   revisionCount: number;
+  // ── Onchain fields ────────────────────────────────────────────────────────
+  chainTaskId?: string;       // uint256 taskId from CeloTasks contract
+  txHash?: string;            // tx hash of createTask() call
+  contractAddress?: string;   // CeloTasks contract address
 }
 
 export interface ActivityItem {
