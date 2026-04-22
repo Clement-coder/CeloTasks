@@ -429,8 +429,19 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (task.revisionCount >= 3) throw new Error("Maximum of 3 revision requests reached. Please approve or cancel.");
     const { error } = await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback, revision_count: task.revisionCount + 1 }).eq("id", id);
     if (error) throw error;
+
+    if (walletClient && publicClient && task.chainTaskId) {
+      try {
+        const tx = await walletClient.writeContract({
+          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "requestRevision",
+          args: [BigInt(task.chainTaskId)],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      } catch (e) { console.error("[requestRevision] contract call failed:", e); }
+    }
+
     await appendActivity(id, task.title, "revision_requested", currentUser, feedback);
-  }, [tasks, currentUser]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const approveTask = useCallback(async (id: string): Promise<void> => {
     const db = getSupabase();
