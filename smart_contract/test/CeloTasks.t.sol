@@ -174,3 +174,29 @@ contract TestSubmitWork is CeloTasksTest {
         ct.submitWork(taskId, "");
     }
 }
+
+// ─── test_RequestRevision ─────────────────────────────────────────────────────
+
+contract TestRequestRevision is CeloTasksTest {
+    function test_RequestRevision() public {
+        uint256 taskId = _submittedTask();
+        vm.prank(creator);
+        ct.requestRevision(taskId);
+
+        CeloTasks.Task memory t = ct.getTask(taskId);
+        assertEq(uint8(t.status), uint8(CeloTasks.Status.InProgress));
+        assertEq(t.revisionCount, 1);
+    }
+
+    function test_RequestRevision_ThreeTimes() public {
+        uint256 taskId = _submittedTask();
+        for (uint8 i = 0; i < 3; i++) {
+            vm.prank(creator);
+            ct.requestRevision(taskId);
+            // worker resubmits
+            vm.prank(worker);
+            ct.submitWork(taskId, PROOF);
+        }
+        assertEq(ct.getRevisionCount(taskId), 3);
+    }
+}
