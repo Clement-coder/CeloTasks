@@ -38,8 +38,10 @@
 
 | Network | Contract | Address |
 |---|---|---|
-| Celo Mainnet | CeloTasks | [`0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a`](https://celoscan.io/address/0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a) |
+| Celo Mainnet | CeloTasks v2 | [`0xe289c5F77Bf51BB187C302364b779f4CAF572aEb`](https://celoscan.io/address/0xe289c5F77Bf51BB187C302364b779f4CAF572aEb) |
 | Celo Mainnet | cUSD | [`0x765DE816845861e75A25fCA122bb6898B8B1282a`](https://celoscan.io/address/0x765DE816845861e75A25fCA122bb6898B8B1282a) |
+| Celo Mainnet | Deployer | [`0x12595373006F118392d147759cb18008Fa7ced75`](https://celoscan.io/address/0x12595373006F118392d147759cb18008Fa7ced75) |
+| — | CeloTasks v1 (deprecated) | [`0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a`](https://celoscan.io/address/0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a) |
 
 ---
 
