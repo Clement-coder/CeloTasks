@@ -1,15 +1,30 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useTaskStore } from "@/lib/taskStore";
+import { getSupabase } from "@/utils/supabase/client";
 
 /**
  * Composite reputation score (0–100) based on:
- * - 50% success rate (paid / accepted tasks)
- * - 30% volume (capped at 20 completed tasks)
- * - 20% recency (completed a task in the last 30 days)
+ * - 40% success rate (paid / accepted tasks)
+ * - 25% volume (capped at 20 completed tasks)
+ * - 15% recency (completed a task in the last 30 days)
+ * - 20% avg star rating (from ratings table, if any)
  */
 export function useReputationScore(wallet?: string | null) {
   const { tasks } = useTaskStore();
+  const [avgStars, setAvgStars] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!wallet) return;
+    getSupabase()
+      .from("ratings")
+      .select("stars")
+      .eq("ratee_wallet", wallet.toLowerCase())
+      .then(({ data }: { data: { stars: number }[] | null }) => {
+        if (!data || data.length === 0) return;
+        setAvgStars(data.reduce((s, r) => s + r.stars, 0) / data.length);
+      });
+  }, [wallet]);
 
   return useMemo(() => {
     if (!wallet) return { score: 0, level: "Newcomer" as const };
@@ -23,7 +38,14 @@ export function useReputationScore(wallet?: string | null) {
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const recentlyActive = completed.some((t) => t.paidAt && new Date(t.paidAt).getTime() > thirtyDaysAgo);
 
-    const score = Math.round(successRate * 50 + volumeScore * 30 + (recentlyActive ? 20 : 0));
+    const ratingScore = avgStars !== null ? (avgStars - 1) / 4 : 0; // 1–5 stars → 0–1
+
+    const score = Math.round(
+      successRate * 40 +
+      volumeScore * 25 +
+      (recentlyActive ? 15 : 0) +
+      ratingScore * 20
+    );
 
     const level =
       score >= 90 ? "Elite"    :
@@ -33,5 +55,5 @@ export function useReputationScore(wallet?: string | null) {
                     "Newcomer";
 
     return { score, level };
-  }, [tasks, wallet]);
+  }, [tasks, wallet, avgStars]);
 }
