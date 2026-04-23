@@ -11,14 +11,14 @@ const STATS = [
 ] as const;
 
 export default function LiveStats() {
-  const { tasks, activity } = useTaskStore();
+  const { tasks } = useTaskStore();
   const { onchainTaskCount } = useOnchainStats();
   const paid = tasks.filter((t) => t.status === "paid");
   const totalEarnings = paid.reduce((sum, t) => sum + Number(t.reward), 0);
   const uniqueUsers = new Set(tasks.flatMap((t) => [t.creator, t.acceptor].filter(Boolean))).size;
 
   const values = [
-    onchainTaskCount !== null ? `${onchainTaskCount}` : `${activity.length}+`,
+    onchainTaskCount !== null ? `${onchainTaskCount}` : `${paid.length}`,
     `$${totalEarnings.toFixed(0)}+`,
     `${uniqueUsers}+`,
     "< 3s",
