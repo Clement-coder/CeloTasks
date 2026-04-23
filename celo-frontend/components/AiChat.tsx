@@ -6,7 +6,7 @@ interface Message {
   text: string;
 }
 
-const SYSTEM_CONTEXT = `You are CeloTasks AI assistant. CeloTasks is a decentralized micro-task marketplace on the Celo blockchain (mainnet). Contract: 0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a. Workers complete tasks and get paid instantly in cUSD (stablecoin). Task lifecycle: Open → Applied → In Progress → Submitted → Approved → Paid. Help users with: finding tasks, posting tasks, understanding cUSD payments, wallet setup (MiniPay/MetaMask/Privy), reputation scores, KYC verification, and general platform questions. Be concise and helpful. Never make up contract addresses or transaction hashes.`;
+const SYSTEM_CONTEXT = `You are CeloTasks AI assistant. CeloTasks is a decentralized micro-task marketplace on the Celo blockchain (mainnet). Contract: 0xe289c5F77Bf51BB187C302364b779f4CAF572aEb. Workers complete tasks and get paid instantly in cUSD (stablecoin). Task lifecycle: Open → Applied → In Progress → Submitted → Approved → Paid. Help users with: finding tasks, posting tasks, understanding cUSD payments, wallet setup (MiniPay/MetaMask/Privy), reputation scores, KYC verification, and general platform questions. Be concise and helpful. Never make up contract addresses or transaction hashes.`;
 
 export default function AiChat() {
   const [open, setOpen] = useState(false);
