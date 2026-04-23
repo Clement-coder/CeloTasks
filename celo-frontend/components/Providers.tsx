@@ -6,11 +6,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { privyConfig, wagmiConfig } from "@/lib/wagmi";
 import { TaskProvider, useTaskStore } from "@/lib/taskStore";
 import { useEffect, useState } from "react";
+import { useNotifications } from "@/hooks/useNotifications";
 
 function WalletSync() {
   const { address } = useAccount();
   const { setMyAddress } = useTaskStore();
   useEffect(() => { if (address) setMyAddress(address); }, [address, setMyAddress]);
+  useNotifications();
   return null;
 }
 
