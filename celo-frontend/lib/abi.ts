@@ -145,9 +145,24 @@ export const CELOTASKS_ABI = [
     ],
   },
   {
+    name: "RevisionRequested",
+    type: "event",
+    inputs: [
+      { name: "taskId",        type: "uint256", indexed: true  },
+      { name: "revisionCount", type: "uint8",   indexed: false },
+    ],
+  },
+  {
     name: "TaskApproved",
     type: "event",
     inputs: [{ name: "taskId", type: "uint256", indexed: true }],
+  },
+  {
+    name: "getRevisionCount",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "taskId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint8" }],
   },
   {
     name: "PaymentReleased",

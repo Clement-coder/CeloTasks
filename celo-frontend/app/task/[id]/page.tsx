@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState, useCallback } from "react";
+import { use, useState, useCallback, useEffect } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastContainer from "@/components/ToastContainer";
 import { useToast } from "@/hooks/useToast";
 import { useTaskStore } from "@/lib/taskStore";
 import RatingModal from "@/components/RatingModal";
+import { getSupabase } from "@/utils/supabase/client";
 import {
   IconArrowRight,
   IconCheck,
@@ -58,7 +59,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [attachment, setAttachment] = useState<{ name: string; data: string } | null>(null);
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
+  const [paymentTxHash, setPaymentTxHash] = useState<string | null>(null);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
+
+  // Fetch the payment tx hash from onchain_payments (not the create tx)
+  useEffect(() => {
+    if (!task || task.status !== "paid") return;
+    getSupabase()
+      .from("onchain_payments")
+      .select("tx_hash")
+      .eq("task_id", task.id)
+      .single()
+      .then(({ data }: { data: { tx_hash: string } | null }) => {
+        if (data?.tx_hash) setPaymentTxHash(data.tx_hash);
+      });
+  }, [task?.id, task?.status]);
 
   if (!task) {
     return (
@@ -377,9 +392,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <p className="text-sm text-slate-200 leading-relaxed">
                   Payment has been released. This task is fully complete.
                 </p>
-                {task.txHash && (
+                {paymentTxHash && (
                   <a
-                    href={`https://celoscan.io/tx/${task.txHash}`}
+                    href={`https://celoscan.io/tx/${paymentTxHash}`}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-3 inline-flex items-center gap-1.5 text-xs text-fuchsia-400 hover:text-fuchsia-300 underline underline-offset-2"
@@ -479,6 +494,18 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <p className="text-slate-500 text-xs">{isCreator ? "You are the creator on this task." : isWorker ? "You are the active worker on this task." : "You are viewing as an observer."}</p>
               </div>
             </div>
+            {task.txHash && (
+              <a href={`https://celoscan.io/tx/${task.txHash}`} target="_blank" rel="noreferrer"
+                className="outline-btn text-slate-400 text-xs px-4 py-2.5 rounded-2xl flex items-center gap-1.5">
+                <IconExternalLink className="w-3.5 h-3.5" /> View creation tx on Celoscan
+              </a>
+            )}
+            {task.chainTaskId && (
+              <div className="rounded-2xl px-4 py-2.5 border border-white/[0.06] text-xs text-slate-500"
+                style={{ background: "rgba(255,255,255,0.02)" }}>
+                Chain task ID: <span className="text-slate-300 font-mono">#{task.chainTaskId}</span>
+              </div>
+            )}
             <Link href="/activity" className="outline-btn text-slate-200 text-sm px-4 py-3 rounded-2xl flex items-center justify-between">
               Review global activity feed <IconArrowRight className="w-4 h-4" />
             </Link>

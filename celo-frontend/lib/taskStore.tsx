@@ -376,20 +376,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     await ensureProfile(currentUser);
     const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
     if (error) throw error;
-
-    // call contract if task has a chain_task_id
-    if (walletClient && publicClient && task.chainTaskId) {
-      try {
-        const tx = await walletClient.writeContract({
-          address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "assignWorker",
-          args: [BigInt(task.chainTaskId), currentUser as `0x${string}`],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: tx });
-      } catch (e) { console.error("[acceptTask] contract call failed:", e); }
-    }
-
+    // NOTE: assignWorker is onlyCreator on the contract — workers cannot call it directly.
+    // The creator calls assignWorker via selectApplicant. Direct accept is off-chain only.
     await appendActivity(id, task.title, "accepted", currentUser, "Accepted the task and started work.");
-  }, [tasks, currentUser, myAddress, walletClient, publicClient]);
+  }, [tasks, currentUser, myAddress]);
 
   const submitTask = useCallback(async (id: string, payload: { proofText: string; proofLink: string; attachmentName?: string; attachmentData?: string }): Promise<void> => {
     const db = getSupabase();
@@ -469,28 +459,33 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
+    if (!task.chainTaskId) throw new Error("No onchain task ID — payment cannot be released without a contract record.");
+    if (!walletClient || !publicClient) throw new Error("Connect your wallet to release payment.");
+
     // contract call FIRST — this is the real money transfer
-    if (walletClient && publicClient && task.chainTaskId) {
-      const tx = await walletClient.writeContract({
-        address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "releasePayment",
-        args: [BigInt(task.chainTaskId)],
-      });
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
+    const tx = await walletClient.writeContract({
+      address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "releasePayment",
+      args: [BigInt(task.chainTaskId)],
+    });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
 
-      // save payment audit record
-      await db.from("onchain_payments").insert({
-        task_id:       id,
-        chain_task_id: task.chainTaskId,
-        tx_hash:       receipt.transactionHash,
-        from_address:  currentUser,
-        to_address:    task.acceptor ?? "",
-        amount_wei:    parseEther(task.reward).toString(),
-        amount_cusd:   Number(task.reward),
-        block_number:  Number(receipt.blockNumber),
-      }).select();
-    }
+    // save payment audit record
+    await db.from("onchain_payments").insert({
+      task_id:       id,
+      chain_task_id: task.chainTaskId,
+      tx_hash:       receipt.transactionHash,
+      from_address:  currentUser,
+      to_address:    task.acceptor ?? "",
+      amount_wei:    parseEther(task.reward).toString(),
+      amount_cusd:   Number(task.reward),
+      block_number:  Number(receipt.blockNumber),
+    });
 
-    const { error } = await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await db.from("tasks").update({
+      status:  "paid",
+      paid_at: new Date().toISOString(),
+      tx_hash: receipt.transactionHash,
+    }).eq("id", id);
     if (error) throw error;
     await appendActivity(id, task.title, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`);
   }, [tasks, currentUser, walletClient, publicClient]);
@@ -573,9 +568,23 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "claimAfterTimeout",
       args: [BigInt(task.chainTaskId)],
     });
-    await publicClient.waitForTransactionReceipt({ hash: tx });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
     const db = getSupabase();
-    await db.from("tasks").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    await db.from("onchain_payments").insert({
+      task_id:       id,
+      chain_task_id: task.chainTaskId,
+      tx_hash:       receipt.transactionHash,
+      from_address:  task.creator,
+      to_address:    currentUser,
+      amount_wei:    parseEther(task.reward).toString(),
+      amount_cusd:   Number(task.reward),
+      block_number:  Number(receipt.blockNumber),
+    });
+    await db.from("tasks").update({
+      status:  "paid",
+      paid_at: new Date().toISOString(),
+      tx_hash: receipt.transactionHash,
+    }).eq("id", id);
     await appendActivity(id, task.title, "paid", currentUser, "Payment claimed after creator timeout.");
   }, [tasks, currentUser, walletClient, publicClient]);
 

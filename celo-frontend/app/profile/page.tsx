@@ -28,7 +28,7 @@ export default function ProfilePage() {
   const { toasts, addToast, removeToast } = useToast();
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState(0);
-  const [payments, setPayments] = useState<{ tx_hash: string; amount_cusd: number; created_at: string; to_address: string }[]>([]);
+  const [payments, setPayments] = useState<{ tx_hash: string; amount_cusd: number; confirmed_at: string; to_address: string }[]>([]);
 
   useEffect(() => {
     if (!address) return;

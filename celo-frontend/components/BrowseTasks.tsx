@@ -21,7 +21,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function BrowseTasks({ onToast }: Props) {
-  const { browseTasks, acceptTask, profile } = useTaskStore();
+  const { browseTasks, acceptTask } = useTaskStore();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
