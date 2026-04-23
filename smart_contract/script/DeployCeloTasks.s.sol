@@ -14,8 +14,7 @@ contract DeployCeloTasks is Script {
         // Pick cUSD address based on chain
         address cusd = block.chainid == 42220 ? CUSD_MAINNET : CUSD_ALFAJORES;
 
-        uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerKey);
+        vm.startBroadcast();
 
         CeloTasks celoTasks = new CeloTasks(cusd);
 
