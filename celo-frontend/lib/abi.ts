@@ -1,5 +1,5 @@
 // lib/abi.ts — CeloTasks contract ABI
-export const CELOTASKS_ADDRESS = "0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a" as const;
+export const CELOTASKS_ADDRESS = "0xe289c5F77Bf51BB187C302364b779f4CAF572aEb" as const;
 export const CUSD_ADDRESS      = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as const;
 
 export const CELOTASKS_ABI = [
