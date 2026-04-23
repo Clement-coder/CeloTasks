@@ -1,0 +1,17 @@
+# Compiler files
+cache/
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+explorer=NVDKA6JD99YRPRZ7YUMNVURVW3D5U2GTD7
+privatekey=2141ed24db20c3f29ec6b6ec6541b936700189ef9e9596370fc59f2208a38ce9
+rpcrul=https://forno.celo.org
