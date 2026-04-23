@@ -125,11 +125,12 @@ export default function Navbar() {
             </div>
             <div className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.06] px-2 py-1" style={{ background: "rgba(255,255,255,0.03)" }}>
               {[
-                { href: "/", label: "Home" },
-                { href: "/dashboard", label: "Browse", badge: urgentCount > 0 ? urgentCount : undefined },
+                { href: "/",            label: "Home" },
+                { href: "/dashboard",   label: "Browse", badge: urgentCount > 0 ? urgentCount : undefined },
                 { href: "/create-task", label: "Create" },
-                { href: "/activity", label: "Activity", badge: urgentCount > 0 ? urgentCount : undefined },
-                { href: "/profile", label: "Profile" },
+                { href: "/activity",    label: "Activity", badge: urgentCount > 0 ? urgentCount : undefined },
+                { href: "/leaderboard", label: "Leaders" },
+                { href: "/profile",     label: "Profile" },
               ].map((item) => {
                 const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
                 return (
