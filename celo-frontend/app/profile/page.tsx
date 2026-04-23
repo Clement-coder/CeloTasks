@@ -2,7 +2,7 @@
 
 import { useAccount } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IconCheck, IconCoin, IconPlus, IconStar, IconTrendingUp, IconWallet, IconArrowRight, IconUsers, IconShield } from "@/components/Icons";
 import { useTaskStore, type TaskStatus } from "@/lib/taskStore";
 import Link from "next/link";
@@ -14,15 +14,34 @@ import KYCButton from "@/components/KYCButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
+import { getSupabase } from "@/utils/supabase/client";
+import { useReputationScore } from "@/hooks/useReputationScore";
 
 export default function ProfilePage() {
   const { address } = useAccount();
   const { login, logout, ready, authenticated, user } = usePrivy();
   const { currentUser, myAcceptedTasks, myCreatedTasks, stats, profile } = useTaskStore();
+  const { score: repScore, level: repLevel } = useReputationScore(address);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
+  const [avgRating, setAvgRating] = useState<number | null>(null);
+  const [ratingCount, setRatingCount] = useState(0);
+
+  useEffect(() => {
+    if (!address) return;
+    getSupabase()
+      .from("ratings")
+      .select("stars")
+      .eq("ratee_wallet", address.toLowerCase())
+      .then(({ data }: { data: { stars: number }[] | null }) => {
+        if (!data || data.length === 0) return;
+        const avg = data.reduce((s: number, r: { stars: number }) => s + r.stars, 0) / data.length;
+        setAvgRating(Math.round(avg * 10) / 10);
+        setRatingCount(data.length);
+      });
+  }, [address]);
 
   const privyEmail = user?.email?.address ?? user?.google?.email ?? null;
   const privyName  = user?.google?.name ?? null;
@@ -109,6 +128,14 @@ export default function ProfilePage() {
                   + Add display name
                 </button>
               )}
+              {repScore > 0 && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs px-2.5 py-1 rounded-full border border-teal-500/30 text-teal-300"
+                    style={{ background: "rgba(20,184,166,0.1)" }}>
+                    {repLevel} · {repScore}/100
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -163,6 +190,22 @@ export default function ProfilePage() {
           </div>
         ))}
       </div>
+
+      {/* ── Rating badge ── */}
+      {avgRating !== null && (
+        <div className="rounded-2xl px-5 py-4 border border-amber-400/20 flex items-center gap-4"
+          style={{ background: "rgba(234,179,8,0.07)" }}>
+          <div className="flex gap-1">
+            {[1,2,3,4,5].map((n) => (
+              <IconStar key={n} className={`w-5 h-5 ${n <= Math.round(avgRating) ? "text-amber-400" : "text-slate-600"}`} />
+            ))}
+          </div>
+          <div>
+            <p className="text-amber-300 font-semibold text-sm">{avgRating} / 5 average rating</p>
+            <p className="text-slate-500 text-xs">Based on {ratingCount} review{ratingCount !== 1 ? "s" : ""} from task creators</p>
+          </div>
+        </div>
+      )}
 
       {/* ── Role breakdown + categories ── */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
