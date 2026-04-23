@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconHome, IconPlus, IconSearch, IconStar, IconZap, IconShield } from "@/components/Icons";
+import { IconHome, IconPlus, IconSearch, IconStar, IconTrendingUp, IconShield } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 
 const LEFT = [
@@ -9,7 +9,7 @@ const LEFT = [
   { href: "/dashboard", label: "Browse", Icon: IconSearch },
 ];
 const RIGHT = [
-  { href: "/activity", label: "Activity", Icon: IconZap },
+  { href: "/leaderboard", label: "Leaders", Icon: IconTrendingUp },
   { href: "/profile", label: "Profile", Icon: IconStar },
 ];
 
@@ -54,14 +54,7 @@ export default function BottomNav() {
 
         {RIGHT.map(({ href, label, Icon }) => (
           <Link key={href} href={href} className={`flex flex-col items-center gap-1 px-4 py-2 transition-colors ${isActive(href) ? "text-teal-400" : "text-slate-500"}`}>
-            <div className="relative">
-              <Icon className="w-5 h-5" />
-              {href === "/activity" && urgentCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
-                  {urgentCount > 9 ? "9+" : urgentCount}
-                </span>
-              )}
-            </div>
+            <Icon className="w-5 h-5" />
             <span className="text-[10px] font-medium">{label}</span>
           </Link>
         ))}
