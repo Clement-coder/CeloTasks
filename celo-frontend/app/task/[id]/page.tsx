@@ -91,7 +91,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const isCreator = task.creator === currentUser;
   const isWorker = task.acceptor === currentUser;
 
-  const runAction = async (fn: () => Promise<void>, message: string) => {
+  const runAction = useCallback(async (fn: () => Promise<void>, message: string) => {
     setLoading(true);
     try {
       await fn();
@@ -101,7 +101,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
