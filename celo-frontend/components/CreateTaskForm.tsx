@@ -146,6 +146,9 @@ export default function CreateTaskForm({ onSuccess }: Props) {
               />
             </div>
             <p className="text-red-400 text-xs mt-1.5">{errors.reward}</p>
+            {form.currency === "CELO" && (
+              <p className="text-amber-400 text-xs mt-1.5">⚠️ CELO payments are off-chain only — the smart contract escrow uses cUSD.</p>
+            )}
           </div>
 
           {/* Effort */}
