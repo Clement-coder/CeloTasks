@@ -590,7 +590,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   // ── Derived state ────────────────────────────────────────────────────────────
 
-  const browseTasks     = tasks.filter((t) => t.status === "open" && t.creator !== currentUser);
+  const browseTasks     = tasks.filter((t) => t.status === "open" && (myAddress ? t.creator !== currentUser : true));
   const myCreatedTasks  = tasks.filter((t) => t.creator === currentUser);
   const myAcceptedTasks = tasks.filter((t) => t.acceptor === currentUser);
   const reviewQueue     = tasks.filter((t) => t.creator === currentUser && t.status === "submitted");
