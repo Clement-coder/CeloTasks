@@ -46,7 +46,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [proofLink, setProofLink] = useState("");
   const [feedback, setFeedback] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmAcceptOpen, setConfirmAcceptOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editReward, setEditReward] = useState("");
