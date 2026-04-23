@@ -98,7 +98,7 @@ export default function WalletModal({ open, onClose }: Props) {
                 <span className="text-slate-400 text-sm font-normal ml-2">cUSD</span>
               </p>
               {address && <p className="text-slate-500 text-xs font-mono mt-1">{address.slice(0, 6)}...{address.slice(-6)}</p>}
-              <p className="text-slate-600 text-xs mt-1">To send CELO, use the Withdraw tab.</p>
+              <p className="text-slate-600 text-xs mt-1">To send cUSD to another wallet, use the Withdraw tab.</p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <button onClick={() => setTab("fund")}
