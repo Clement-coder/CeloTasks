@@ -13,7 +13,6 @@ interface Props {
   onToast: (msg: string, type?: ToastType) => void;
 }
 
-const SORTS = ["Newest", "Reward ↑", "Reward ↓", "Deadline Soon"];
 const SORT_OPTIONS = [
   { value: "Newest",        label: "Newest first",      icon: IconClock },
   { value: "Reward ↑",      label: "Reward: Low → High", icon: IconCoin },
