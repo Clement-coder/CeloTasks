@@ -28,18 +28,29 @@ export default function ProfilePage() {
   const { toasts, addToast, removeToast } = useToast();
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState(0);
+  const [payments, setPayments] = useState<{ tx_hash: string; amount_cusd: number; created_at: string; to_address: string }[]>([]);
 
   useEffect(() => {
     if (!address) return;
+    const lower = address.toLowerCase();
     getSupabase()
       .from("ratings")
       .select("stars")
-      .eq("ratee_wallet", address.toLowerCase())
+      .eq("ratee_wallet", lower)
       .then(({ data }: { data: { stars: number }[] | null }) => {
         if (!data || data.length === 0) return;
         const avg = data.reduce((s: number, r: { stars: number }) => s + r.stars, 0) / data.length;
         setAvgRating(Math.round(avg * 10) / 10);
         setRatingCount(data.length);
+      });
+    getSupabase()
+      .from("onchain_payments")
+      .select("tx_hash, amount_cusd, confirmed_at, to_address")
+      .or(`from_address.eq.${lower},to_address.eq.${lower}`)
+      .order("confirmed_at", { ascending: false })
+      .limit(10)
+      .then(({ data }: { data: { tx_hash: string; amount_cusd: number; confirmed_at: string; to_address: string }[] | null }) => {
+        if (data) setPayments(data);
       });
   }, [address]);
 
@@ -309,6 +320,33 @@ export default function ProfilePage() {
           </div>
         )}
       </section>
+
+      {/* ── Onchain payment history ── */}
+      {payments.length > 0 && (
+        <section className="glass-card rounded-3xl p-6 flex flex-col gap-5">
+          <div>
+            <p className="text-white font-semibold">Onchain Payment History</p>
+            <p className="text-slate-500 text-sm">Verified cUSD transfers recorded on Celo.</p>
+          </div>
+          <div className="flex flex-col gap-2">
+            {payments.map((p) => (
+              <a key={p.tx_hash} href={`https://celoscan.io/tx/${p.tx_hash}`} target="_blank" rel="noreferrer"
+                className="flex items-center justify-between gap-3 rounded-2xl p-4 border border-white/[0.08] hover:border-white/20 transition-colors"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-mono text-xs truncate">{p.tx_hash}</p>
+                  <p className="text-slate-500 text-xs mt-0.5">
+                    {p.to_address === address?.toLowerCase() ? "Received" : "Sent"} · {new Date(p.confirmed_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className={`font-bold text-sm shrink-0 ${p.to_address === address?.toLowerCase() ? "text-teal-400" : "text-fuchsia-400"}`}>
+                  {p.to_address === address?.toLowerCase() ? "+" : "-"}{p.amount_cusd} cUSD
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       <ConfirmDialog
         open={confirmLogout}
