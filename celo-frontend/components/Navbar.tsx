@@ -21,14 +21,13 @@ export default function Navbar() {
   const prevAuth = useRef<boolean | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
-  const { reviewQueue, paymentQueue, profile } = useTaskStore();
+  const { reviewQueue, paymentQueue, profile, tasks } = useTaskStore();
   const isAdmin = profile?.role === "admin";
   const urgentCount = reviewQueue.length + paymentQueue.length;
   const pathname = usePathname();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { tasks } = useTaskStore();
 
   const searchResults = searchQuery.trim().length > 1
     ? tasks.filter((t) => `${t.title} ${t.description} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
