@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState } from "react";
+import { use, useState, useCallback } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastContainer from "@/components/ToastContainer";
 import { useToast } from "@/hooks/useToast";
 import { useTaskStore } from "@/lib/taskStore";
+import RatingModal from "@/components/RatingModal";
 import {
   IconArrowRight,
   IconCheck,
@@ -56,6 +57,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [applyNote, setApplyNote] = useState("");
   const [attachment, setAttachment] = useState<{ name: string; data: string } | null>(null);
   const [disputeOpen, setDisputeOpen] = useState(false);
+  const [ratingOpen, setRatingOpen] = useState(false);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
 
   if (!task) {
@@ -105,11 +107,27 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">{task.title}</h1>
             </div>
 
-            <div className="rounded-2xl px-4 py-3 border border-teal-500/15" style={{ background: "rgba(20,184,166,0.08)" }}>
-              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Reward</p>
-              <p className="gradient-text text-3xl font-bold">
-                {task.reward} <span className="text-base">{task.currency}</span>
-              </p>
+            <div className="flex flex-col items-end gap-2">
+              <div className="rounded-2xl px-4 py-3 border border-teal-500/15" style={{ background: "rgba(20,184,166,0.08)" }}>
+                <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Reward</p>
+                <p className="gradient-text text-3xl font-bold">
+                  {task.reward} <span className="text-base">{task.currency}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const url = window.location.href;
+                  if (navigator.share) {
+                    navigator.share({ title: task.title, text: `${task.reward} ${task.currency} task on CeloTasks`, url });
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    addToast("Task link copied to clipboard!", "success");
+                  }
+                }}
+                className="outline-btn text-slate-400 text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <IconExternalLink className="w-3.5 h-3.5" /> Share
+              </button>
             </div>
           </div>
 
@@ -369,6 +387,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     View payment on Celoscan <IconExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
+                {isCreator && task.acceptor && (
+                  <button
+                    onClick={() => setRatingOpen(true)}
+                    className="mt-3 block text-xs text-amber-400 hover:text-amber-300 transition-colors underline underline-offset-2 cursor-pointer"
+                  >
+                    ⭐ Rate the worker
+                  </button>
+                )}
               </div>
             )}
 
@@ -490,6 +516,18 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       />
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {task.acceptor && (
+        <RatingModal
+          open={ratingOpen}
+          taskId={task.id}
+          taskTitle={task.title}
+          workerAddress={task.acceptor}
+          raterAddress={currentUser}
+          onClose={() => setRatingOpen(false)}
+          onDone={() => { setRatingOpen(false); addToast("Rating submitted. Thank you!", "success"); }}
+        />
+      )}
     </div>
   );
 }
