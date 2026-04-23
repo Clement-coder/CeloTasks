@@ -34,6 +34,15 @@
 
 ---
 
+## Deployed Contract
+
+| Network | Contract | Address |
+|---|---|---|
+| Celo Mainnet | CeloTasks | [`0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a`](https://celoscan.io/address/0x307e7Ae2c36033a894b9a72a8e42529F61c86F0a) |
+| Celo Mainnet | cUSD | [`0x765DE816845861e75A25fCA122bb6898B8B1282a`](https://celoscan.io/address/0x765DE816845861e75A25fCA122bb6898B8B1282a) |
+
+---
+
 ## What is CeloTasks?
 
 CeloTasks is a decentralized micro-task marketplace on the Celo blockchain. Post a task with a cUSD reward, complete it, get paid — instantly, trustlessly, onchain.
