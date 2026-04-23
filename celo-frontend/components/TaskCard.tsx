@@ -49,14 +49,21 @@ function deadlineLabel(deadlineStr: string): { text: string; urgent: boolean } {
 }
 
 export default function TaskCard({ task, onAccept, primaryAction, loading }: TaskCardProps) {
+  const isExpired = task.status === "open" && new Date(`${task.deadline}T23:59:59`).getTime() < Date.now();
+
   return (
-    <div className="glass-card rounded-3xl p-5 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+    <div className={`glass-card rounded-3xl p-5 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 ${isExpired ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap gap-2 mb-3">
             <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${STATUS_STYLES[task.status]}`}>
               {STATUS_LABELS[task.status]}
             </span>
+            {isExpired && (
+              <span className="text-xs px-2.5 py-1 rounded-full border border-red-400/30 text-red-400 bg-red-400/10 font-medium">
+                Expired
+              </span>
+            )}
             <span className="text-xs px-2.5 py-1 rounded-full border border-white/[0.08] text-slate-400">
               {task.category}
             </span>
