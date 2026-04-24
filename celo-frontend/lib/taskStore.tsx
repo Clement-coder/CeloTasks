@@ -22,7 +22,7 @@ export const TASK_CURRENCIES = ["cUSD", "CELO"] as const;
 export type TaskCategory   = (typeof TASK_CATEGORIES)[number];
 export type TaskDifficulty = (typeof TASK_DIFFICULTIES)[number];
 export type TaskCurrency   = (typeof TASK_CURRENCIES)[number];
-export type TaskStatus     = "open" | "in_progress" | "submitted" | "approved" | "paid" | "cancelled";
+export type TaskStatus     = "draft" | "open" | "in_progress" | "submitted" | "approved" | "paid" | "cancelled";
 export type ActivityType   =
   | "created" | "accepted" | "submitted"
   | "revision_requested" | "approved" | "paid" | "cancelled";
