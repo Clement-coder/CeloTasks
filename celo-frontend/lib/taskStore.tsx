@@ -145,7 +145,7 @@ interface TaskStore {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const FALLBACK_USER = "0xCelo...Tasks";
+const FALLBACK_USER = "";
 
 /** Map a raw Supabase tasks row → Task */
 function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], sub?: TaskSubmission): Task {
@@ -301,6 +301,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const createTask = useCallback(async (input: CreateTaskInput): Promise<string> => {
     const db = getSupabase();
+    if (!currentUser) throw new Error("Connect your wallet before creating a task.");
     await ensureProfile(currentUser);
 
     // 1. Insert into Supabase first to get the UUID
@@ -529,6 +530,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const applyToTask = useCallback(async (id: string, note: string): Promise<void> => {
     const db = getSupabase();
+    if (!currentUser) throw new Error("Connect your wallet before applying to a task.");
     await ensureProfile(currentUser);
     const { error } = await db.from("task_applications").upsert(
       { task_id: id, applicant: currentUser, note },
