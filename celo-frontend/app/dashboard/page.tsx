@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const { balance: cusdBalance, isLoading: cusdLoading } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
   const { toasts, addToast, removeToast } = useToast();
-  const { stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
+  const { stats, reviewQueue, paymentQueue, myAcceptedTasks, loading: storeLoading } = useTaskStore();
 
   if (!authenticated) {
     return (
@@ -40,6 +40,14 @@ export default function DashboardPage() {
           Connect Wallet
         </button>
         <p className="text-slate-600 text-xs">Works with MiniPay, email, Google, and any wallet</p>
+      </div>
+    );
+  }
+
+  if (storeLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
       </div>
     );
   }
