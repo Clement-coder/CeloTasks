@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAccount } from "wagmi";
 import {
   TASK_CATEGORIES,
   TASK_CURRENCIES,
@@ -10,6 +11,7 @@ import {
   type TaskCurrency,
   type TaskDifficulty,
 } from "@/lib/taskStore";
+import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import { IconCheck, IconClock, IconCoin, IconPlus, IconSearch, IconZap, IconUsers, IconStar } from "@/components/Icons";
 import CustomSelect from "@/components/CustomSelect";
 
@@ -41,6 +43,8 @@ function Label({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 export default function CreateTaskForm({ onSuccess }: Props) {
   const { createTask } = useTaskStore();
+  const { address } = useAccount();
+  const { balance: cusdBalance } = useCUSDBalance(address);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -58,6 +62,9 @@ export default function CreateTaskForm({ onSuccess }: Props) {
     if (!form.description.trim()) errs.description = "Description is required";
     if (form.description.length > 700) errs.description = "Max 700 characters";
     if (!form.reward || Number(form.reward) <= 0) errs.reward = "Enter a valid reward";
+    if (form.currency === "cUSD" && cusdBalance !== null && Number(form.reward) > Number(cusdBalance)) {
+      errs.reward = `Insufficient cUSD balance (you have ${cusdBalance} cUSD)`;
+    }
     if (!form.deadline) errs.deadline = "Deadline is required";
     else if (form.deadline < new Date().toISOString().slice(0, 10)) errs.deadline = "Must be today or future";
     if (!form.estimatedHours || Number(form.estimatedHours) <= 0) errs.estimatedHours = "Required";
