@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const { address } = useAccount();
   const { login, ready, authenticated } = usePrivy();
   const { data: balance } = useBalance({ address, query: { enabled: !!address } });
-  const { balance: cusdBalance } = useCUSDBalance(address);
+  const { balance: cusdBalance, isLoading: cusdLoading } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
   const { toasts, addToast, removeToast } = useToast();
   const { stats, reviewQueue, paymentQueue, myAcceptedTasks } = useTaskStore();
@@ -81,7 +81,9 @@ export default function DashboardPage() {
           <div>
             <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Wallet Balance</p>
             <p className="gradient-text font-bold text-base sm:text-xl leading-none">
-              {cusdBalance ?? <span className="skeleton inline-block w-20 h-5 rounded" />}
+              {cusdLoading
+                ? <span className="skeleton inline-block w-20 h-5 rounded" />
+                : <>{cusdBalance ?? "0.0000"}</>}
               <span className="text-slate-500 text-xs font-normal ml-1">cUSD</span>
             </p>
             {balance
