@@ -7,6 +7,7 @@ export function useOnchainStats() {
     address: CELOTASKS_ADDRESS,
     abi: CELOTASKS_ABI,
     functionName: "taskCount",
+    query: { refetchInterval: 30_000 },
   });
 
   return {
