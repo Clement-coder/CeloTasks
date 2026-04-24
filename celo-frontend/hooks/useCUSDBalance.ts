@@ -11,15 +11,15 @@ const ERC20_ABI = [
 ] as const;
 
 export function useCUSDBalance(address?: `0x${string}`) {
-  const { data, isLoading } = useReadContract({
+  const { data, isLoading, refetch } = useReadContract({
     address: CUSD_ADDRESS,
     abi: ERC20_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     chainId: celo.id,
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: 15_000 },
   });
 
   const formatted = data ? (Number(data) / 1e18).toFixed(4) : null;
-  return { balance: formatted, isLoading };
+  return { balance: formatted, isLoading, refetch };
 }
