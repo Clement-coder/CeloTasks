@@ -151,7 +151,14 @@ export default function WalletModal({ open, onClose }: Props) {
                   style={{ background: "rgba(255,255,255,0.04)" }} />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-slate-400 text-xs uppercase tracking-wider">Amount (cUSD)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-400 text-xs uppercase tracking-wider">Amount (cUSD)</label>
+                  {balance && (
+                    <button onClick={() => setAmount(balance)} className="text-teal-400 text-xs hover:text-teal-300 transition-colors cursor-pointer">
+                      Max: {balance}
+                    </button>
+                  )}
+                </div>
                 <input value={amount} onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00" type="number" min="0" step="any"                  className="w-full rounded-xl px-4 py-3 text-sm text-white border border-white/[0.08] outline-none focus:border-teal-500/50 transition-colors"
                   style={{ background: "rgba(255,255,255,0.04)" }} />
