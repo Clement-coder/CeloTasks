@@ -5,7 +5,9 @@ import type { PrivyClientConfig } from "@privy-io/react-auth";
 
 export const wagmiConfig = createConfig({
   chains: [celo],
-  transports: { [celo.id]: http() },
+  transports: {
+    [celo.id]: http(process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org"),
+  },
 });
 
 export const privyConfig: PrivyClientConfig = {
