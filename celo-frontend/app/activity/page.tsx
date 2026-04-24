@@ -33,13 +33,21 @@ const STAT_ICONS = [
 ] as const;
 
 export default function ActivityPage() {
-  const { activity, stats, currentUser } = useTaskStore();
+  const { activity, stats, currentUser, loading: storeLoading } = useTaskStore();
   const [filter, setFilter] = useState<ActivityType | "all">("all");
   const [myOnly, setMyOnly] = useState(false);
 
   const filtered = activity
     .filter((a) => myOnly ? a.actor === currentUser : true)
     .filter((a) => filter === "all" ? true : a.type === filter);
+
+  if (storeLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
