@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const { address } = useAccount();
   const { login, logout, ready, authenticated, user } = usePrivy();
   const { currentUser, myAcceptedTasks, myCreatedTasks, stats, profile, loading: storeLoading } = useTaskStore();
-  const { score: repScore, level: repLevel } = useReputationScore(address);
+  const { score: repScore, level: repLevel } = useReputationScore(authenticated ? address : null);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
