@@ -11,11 +11,13 @@ import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import WalletModal from "@/components/WalletModal";
 import { useTaskStore } from "@/lib/taskStore";
+import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import { IconSearch, IconShield } from "@/components/Icons";
 
 export default function Navbar() {
   const { login, logout, ready, authenticated } = usePrivy();
   const { address } = useAccount();
+  const { balance: cusdBalance } = useCUSDBalance(address);
   const [miniPay, setMiniPay] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const prevAuth = useRef<boolean | null>(null);
@@ -173,7 +175,7 @@ export default function Navbar() {
                 )}
                 <button onClick={() => setWalletOpen(true)}
                   className="outline-btn text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
-                  {shortenAddress(address)}
+                  {cusdBalance ? `${cusdBalance} cUSD` : shortenAddress(address)}
                 </button>
                 <button onClick={() => setConfirmLogout(true)}
                   className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer text-xs px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-xl hover:bg-red-500/10"
