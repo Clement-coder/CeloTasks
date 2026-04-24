@@ -13,10 +13,13 @@ export const wagmiConfig = createConfig({
 export const privyConfig: PrivyClientConfig = {
   defaultChain: celo,
   supportedChains: [celo],
+  loginMethods: ["google", "email", "wallet"],
   appearance: {
     theme: "dark",
     accentColor: "#14b8a6",
     logo: "/celoTasklogo.png",
+    loginMessage: "Sign in to CeloTasks",
+    showWalletLoginFirst: false,
   },
   embeddedWallets: {
     ethereum: { createOnLogin: "users-without-wallets" },
