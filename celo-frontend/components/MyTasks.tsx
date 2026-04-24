@@ -25,13 +25,14 @@ export default function MyTasks({ onToast }: Props) {
   const { myCreatedTasks, myAcceptedTasks, reviewQueue, paymentQueue } = useTaskStore();
   const [filter, setFilter] = useState<TaskStatus | "all">("all");
 
-  const created = myCreatedTasks.filter((task) => task.status !== "cancelled" && (filter === "all" || task.status === filter));
+  const created = myCreatedTasks.filter((task) => task.status !== "cancelled" && task.status !== "draft" && (filter === "all" || task.status === filter));
+  const drafts = myCreatedTasks.filter((task) => task.status === "draft");
   const cancelled = myCreatedTasks.filter((task) => task.status === "cancelled" && (filter === "all" || filter === "cancelled"));
   const accepted = myAcceptedTasks.filter((task) => filter === "all" || task.status === filter);
   const reviews = reviewQueue.filter((task) => filter === "all" || task.status === filter);
   const payouts = paymentQueue.filter((task) => filter === "all" || task.status === filter);
 
-  const isEmpty = created.length === 0 && cancelled.length === 0 && accepted.length === 0 && reviews.length === 0 && payouts.length === 0;
+  const isEmpty = created.length === 0 && cancelled.length === 0 && drafts.length === 0 && accepted.length === 0 && reviews.length === 0 && payouts.length === 0;
 
   const goToTask = (id: string) => router.push(`/task/${id}`);
 
