@@ -5,6 +5,7 @@ import { IconArrowRight, IconCheck, IconClock, IconCoin, IconZap } from "@/compo
 import { type Task, type TaskStatus } from "@/lib/taskStore";
 
 const STATUS_STYLES: Record<TaskStatus, string> = {
+  draft: "text-slate-400 bg-slate-400/10 border-slate-400/20",
   open: "text-teal-400 bg-teal-400/10 border-teal-400/20",
   in_progress: "text-amber-300 bg-amber-400/10 border-amber-400/20",
   submitted: "text-sky-300 bg-sky-400/10 border-sky-400/20",
@@ -14,6 +15,7 @@ const STATUS_STYLES: Record<TaskStatus, string> = {
 };
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
+  draft: "Draft",
   open: "Open",
   in_progress: "In Progress",
   submitted: "Needs Review",
