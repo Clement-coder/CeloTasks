@@ -38,7 +38,7 @@ const STATUS_LABELS = {
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
+  const { getTask, currentUser, loading: storeLoading, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -73,6 +73,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         if (data?.tx_hash) setPaymentTxHash(data.tx_hash);
       });
   }, [task?.id, task?.status]);
+
+  if (storeLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!task) {
     return (
