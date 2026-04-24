@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useFundWallet, type FundWalletConfig } from "@privy-io/react-auth";
+import { useFundWallet } from "@privy-io/react-auth";
 import { useWriteContract, useAccount } from "wagmi";
 import { parseUnits, isAddress } from "viem";
 import { celo } from "wagmi/chains";
@@ -21,7 +21,7 @@ type Tab = "balance" | "fund" | "withdraw";
 export default function WalletModal({ open, onClose }: Props) {
   const { fundWallet } = useFundWallet();
   const { address } = useAccount();
-  const { balance, isLoading } = useCUSDBalance(address);
+  const { balance, isLoading, refetch } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("balance");
   const [toAddr, setToAddr] = useState("");
   const [amount, setAmount] = useState("");
@@ -48,6 +48,7 @@ export default function WalletModal({ open, onClose }: Props) {
       });
       setTxHash(hash);
       setToAddr(""); setAmount("");
+      refetch();
     } catch (e: unknown) {
       setTxError(e instanceof Error ? e.message : "Transaction failed");
     } finally { setSending(false); }
@@ -55,7 +56,7 @@ export default function WalletModal({ open, onClose }: Props) {
 
   async function handleFund() {
     if (!address) return;
-    await fundWallet({ address, options: { chain: { id: celo.id } as FundWalletConfig["chain"] } });
+    await fundWallet({ address, options: { chain: celo } });
   }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
