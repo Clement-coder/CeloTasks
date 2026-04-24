@@ -81,12 +81,12 @@ export default function DashboardPage() {
           <div>
             <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Wallet Balance</p>
             <p className="gradient-text font-bold text-base sm:text-xl leading-none">
-              {balance ? `${(Number(balance.value) / 1e18).toFixed(2)}` : "—"}
-              <span className="text-slate-500 text-xs font-normal ml-1">{balance?.symbol ?? "CELO"}</span>
+              {cusdBalance ?? <span className="skeleton inline-block w-20 h-5 rounded" />}
+              <span className="text-slate-500 text-xs font-normal ml-1">cUSD</span>
             </p>
-            {cusdBalance
-              ? <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{cusdBalance} <span className="text-slate-600">cUSD available</span></p>
-              : <p className="text-slate-600 text-[10px] mt-0.5">cUSD balance loading…</p>}
+            {balance
+              ? <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{(Number(balance.value) / 1e18).toFixed(4)} <span className="text-slate-600">CELO</span></p>
+              : <p className="text-slate-600 text-[10px] mt-0.5">CELO balance loading…</p>}
           </div>
         </div>
 
