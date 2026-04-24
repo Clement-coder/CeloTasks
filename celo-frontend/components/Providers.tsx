@@ -8,6 +8,8 @@ import { TaskProvider, useTaskStore } from "@/lib/taskStore";
 import { useEffect, useState } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 
+import ErrorBoundary from "@/components/ErrorBoundary";
+
 function WalletSync() {
   const { address } = useAccount();
   const { setMyAddress } = useTaskStore();
@@ -24,10 +26,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <PrivyProvider appId={privyAppId} config={privyConfig}>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={wagmiConfig}>
-          <TaskProvider>
-            <WalletSync />
-            {children}
-          </TaskProvider>
+          <ErrorBoundary>
+            <TaskProvider>
+              <WalletSync />
+              {children}
+            </TaskProvider>
+          </ErrorBoundary>
         </WagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
