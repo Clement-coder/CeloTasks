@@ -174,6 +174,7 @@ export default function Navbar() {
                   </Link>
                 )}
                 <button onClick={() => setWalletOpen(true)}
+                  title={address}
                   className="outline-btn text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-slate-300 cursor-pointer font-mono">
                   {cusdBalance ? `${cusdBalance} cUSD` : shortenAddress(address)}
                 </button>
