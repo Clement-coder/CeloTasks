@@ -11,25 +11,26 @@ import { getSupabase } from "@/utils/supabase/client";
  * - 20% avg star rating (from ratings table, if any)
  */
 export function useReputationScore(wallet?: string | null) {
+  const normalizedWallet = wallet?.toLowerCase() ?? null;
   const { tasks } = useTaskStore();
   const [avgStars, setAvgStars] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!wallet) return;
+    if (!normalizedWallet) return;
     getSupabase()
       .from("ratings")
       .select("stars")
-      .eq("ratee_wallet", wallet.toLowerCase())
+      .eq("ratee_wallet", normalizedWallet)
       .then(({ data }: { data: { stars: number }[] | null }) => {
         if (!data || data.length === 0) return;
         setAvgStars(data.reduce((s, r) => s + r.stars, 0) / data.length);
       });
-  }, [wallet]);
+  }, [normalizedWallet]);
 
   return useMemo(() => {
-    if (!wallet) return { score: 0, level: "Newcomer" as const };
+    if (!normalizedWallet) return { score: 0, level: "Newcomer" as const };
 
-    const accepted  = tasks.filter((t) => t.acceptor === wallet.toLowerCase());
+    const accepted  = tasks.filter((t) => t.acceptor === normalizedWallet);
     const completed = accepted.filter((t) => t.status === "paid");
 
     const successRate = accepted.length > 0 ? completed.length / accepted.length : 0;
@@ -55,5 +56,5 @@ export function useReputationScore(wallet?: string | null) {
                     "Newcomer";
 
     return { score, level };
-  }, [tasks, wallet, avgStars]);
+  }, [tasks, normalizedWallet, avgStars]);
 }
