@@ -507,6 +507,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
+    if (!currentUser) throw new Error("Connect your wallet to cancel a task.");
 
     if (walletClient && publicClient && task.chainTaskId) {
       try {
