@@ -54,17 +54,21 @@ export default function ProfilePage() {
       });
   }, [address]);
 
-  const privyEmail = user?.email?.address ?? user?.google?.email ?? null;
-  const privyName  = user?.google?.name ?? null;
+  const privyEmail = authenticated ? (user?.email?.address ?? user?.google?.email ?? null) : null;
+  const privyName  = authenticated ? (user?.google?.name ?? null) : null;
 
-  const displayName  = profile?.displayName ?? privyName ?? null;
-  const displayEmail = profile?.email ?? privyEmail ?? null;
-  const avatarUrl    = profile?.avatarUrl ?? null;
-  const isVerified   = profile?.isVerified ?? false;
+  const displayName  = authenticated ? (profile?.displayName ?? privyName ?? null) : null;
+  const displayEmail = authenticated ? (profile?.email ?? privyEmail ?? null) : null;
+  const avatarUrl    = authenticated ? (profile?.avatarUrl ?? null) : null;
+  const isVerified   = authenticated ? (profile?.isVerified ?? false) : false;
 
   const isProfileIncomplete = authenticated && (!displayName || !displayEmail);
 
-  const categoryCounts = [...myAcceptedTasks, ...myCreatedTasks].reduce<Record<string, number>>((acc, task) => {
+  const myCreated  = authenticated ? myCreatedTasks  : [];
+  const myAccepted = authenticated ? myAcceptedTasks : [];
+  const myStats    = authenticated ? stats : { openTasks: 0, inProgressTasks: 0, reviewQueue: 0, readyForPayout: 0, earnings: 0, spend: 0, successRate: 100 };
+
+  const categoryCounts = [...myAccepted, ...myCreated].reduce<Record<string, number>>((acc, task) => {
     acc[task.category] = (acc[task.category] || 0) + 1;
     return acc;
   }, {});
@@ -192,10 +196,10 @@ export default function ProfilePage() {
       {/* ── Stats ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: "Tasks Created", value: myCreatedTasks.length,          icon: <IconPlus className="w-5 h-5 text-teal-400" /> },
-          { label: "Tasks Worked",  value: myAcceptedTasks.length,         icon: <IconCheck className="w-5 h-5 text-green-300" /> },
-          { label: "Total Earned",  value: `${stats.earnings.toFixed(0)} cUSD`, icon: <IconCoin className="w-5 h-5 text-fuchsia-300" /> },
-          { label: "Success Rate",  value: `${stats.successRate}%`,        icon: <IconTrendingUp className="w-5 h-5 text-amber-300" /> },
+          { label: "Tasks Created", value: myCreated.length,          icon: <IconPlus className="w-5 h-5 text-teal-400" /> },
+          { label: "Tasks Worked",  value: myAccepted.length,         icon: <IconCheck className="w-5 h-5 text-green-300" /> },
+          { label: "Total Earned",  value: `${myStats.earnings.toFixed(0)} cUSD`, icon: <IconCoin className="w-5 h-5 text-fuchsia-300" /> },
+          { label: "Success Rate",  value: `${myStats.successRate}%`,        icon: <IconTrendingUp className="w-5 h-5 text-amber-300" /> },
         ].map((item) => (
           <div key={item.label} className="glass-card rounded-3xl p-5 flex gap-4 items-start">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-white/[0.08]"
@@ -243,19 +247,19 @@ export default function ProfilePage() {
             <div className="rounded-2xl p-5 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Creator</p>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-400">Tasks posted</span><span className="text-white">{myCreatedTasks.length}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Paid out</span><span className="text-white">{stats.spend.toFixed(0)} cUSD</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Waiting review</span><span className="text-white">{stats.reviewQueue}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Ready to release</span><span className="text-white">{stats.readyForPayout}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Tasks posted</span><span className="text-white">{myCreated.length}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Paid out</span><span className="text-white">{myStats.spend.toFixed(0)} cUSD</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Waiting review</span><span className="text-white">{myStats.reviewQueue}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Ready to release</span><span className="text-white">{myStats.readyForPayout}</span></div>
               </div>
             </div>
             <div className="rounded-2xl p-5 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Worker</p>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-400">Accepted</span><span className="text-white">{myAcceptedTasks.length}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Paid completions</span><span className="text-white">{myAcceptedTasks.filter((t) => t.status === "paid").length}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Earnings</span><span className="text-white">{stats.earnings.toFixed(0)} cUSD</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Reliability</span><span className="text-white">{stats.successRate}%</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Accepted</span><span className="text-white">{myAccepted.length}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Paid completions</span><span className="text-white">{myAccepted.filter((t) => t.status === "paid").length}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Earnings</span><span className="text-white">{myStats.earnings.toFixed(0)} cUSD</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Reliability</span><span className="text-white">{myStats.successRate}%</span></div>
               </div>
             </div>
           </div>
@@ -298,11 +302,11 @@ export default function ProfilePage() {
           <p className="text-white font-semibold">Task History</p>
           <p className="text-slate-500 text-sm">All tasks you created or worked on.</p>
         </div>
-        {[...myCreatedTasks, ...myAcceptedTasks.filter((t) => !myCreatedTasks.find((c) => c.id === t.id))].length === 0 ? (
+        {[...myCreated, ...myAccepted.filter((t) => !myCreated.find((c) => c.id === t.id))].length === 0 ? (
           <p className="text-slate-500 text-sm">No tasks yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {[...myCreatedTasks, ...myAcceptedTasks.filter((t) => !myCreatedTasks.find((c) => c.id === t.id))]
+            {[...myCreated, ...myAccepted.filter((t) => !myCreated.find((c) => c.id === t.id))]
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((task) => {
                 const STATUS_COLORS: Record<TaskStatus, string> = {
