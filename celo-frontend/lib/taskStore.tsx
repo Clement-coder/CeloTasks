@@ -386,6 +386,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
+    if (!currentUser) throw new Error("Connect your wallet before submitting work.");
     const { error: subError } = await db.from("task_submissions").upsert({
       task_id:         id,
       worker_wallet:   currentUser,
