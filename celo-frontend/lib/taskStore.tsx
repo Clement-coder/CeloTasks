@@ -306,7 +306,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (!currentUser) throw new Error("Connect your wallet before creating a task.");
     await ensureProfile(currentUser);
 
-    // 1. Insert into Supabase first to get the UUID
+    // 1. Insert into Supabase as "draft" until contract confirms
     const { data, error } = await db.from("tasks").insert({
       title:            input.title,
       description:      input.description,
@@ -320,7 +320,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       deliverables:     input.deliverables,
       submission_guide: input.submissionGuide,
       tags:             input.tags,
-      status:           "open",
+      status:           "draft",
       contract_address: CELOTASKS_ADDRESS,
     }).select().single();
     if (error) throw error;
@@ -357,14 +357,20 @@ export function TaskProvider({ children }: { children: ReactNode }) {
           } catch { /* skip non-matching logs */ }
         }
 
-        // save tx_hash and chain_task_id back to Supabase
+        // contract confirmed — promote to "open" and save tx data
         await db.from("tasks").update({
+          status:        "open",
           tx_hash:       receipt.transactionHash,
           chain_task_id: chainTaskId ?? null,
         }).eq("id", data.id);
       } catch (contractErr) {
-        console.error("[createTask] contract call failed, task saved off-chain only:", contractErr);
+        // contract failed — delete the draft so no ghost task remains
+        await db.from("tasks").delete().eq("id", data.id);
+        throw contractErr;
       }
+    } else {
+      // no wallet connected — promote to open as off-chain only task
+      await db.from("tasks").update({ status: "open" }).eq("id", data.id);
     }
 
     await appendActivity(data.id, input.title, "created", currentUser, "Published a new task.");
