@@ -42,6 +42,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [proofText, setProofText] = useState("");
   const [proofLink, setProofLink] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -99,15 +100,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const isCreator = task.creator === currentUser;
   const isWorker = task.acceptor === currentUser;
 
-  const runAction = useCallback(async (fn: () => Promise<void>, message: string) => {
-    setLoading(true);
+  const runAction = useCallback(async (fn: () => Promise<void>, message: string, actionKey?: string) => {
+    if (actionKey) setActionLoading(actionKey); else setLoading(true);
     try {
       await fn();
       addToast(message, "success");
     } catch (e: unknown) {
       addToast(e instanceof Error ? e.message : "Something went wrong. Please try again.", "error");
     } finally {
-      setLoading(false);
+      if (actionKey) setActionLoading(null); else setLoading(false);
     }
   }, [addToast]);
 
@@ -320,12 +321,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   {attachment && <button onClick={() => setAttachment(null)} className="text-red-400 text-xs">✕</button>}
                 </label>
                 <button
-                  disabled={loading || !proofText.trim()}
-                  onClick={() => runAction(() => submitTask(task.id, { proofText: proofText.trim(), proofLink: proofLink.trim(), attachmentName: attachment?.name, attachmentData: attachment?.data }), "Submission sent to the creator for review.")}
+                  disabled={actionLoading === "submit" || !proofText.trim()}
+                  onClick={() => runAction(() => submitTask(task.id, { proofText: proofText.trim(), proofLink: proofLink.trim(), attachmentName: attachment?.name, attachmentData: attachment?.data }), "Submission sent to the creator for review.", "submit")}
                   className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   <IconCheck className="w-4 h-4" />
-                  {loading ? "Submitting..." : "Submit Work"}
+                  {actionLoading === "submit" ? "Submitting..." : "Submit Work"}
                 </button>
               </>
             )}
@@ -342,8 +343,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 </button>
                 {task.chainTaskId && (
                   <button
-                    disabled={loading}
-                    onClick={() => runAction(() => claimAfterTimeout(task.id), "Payment claimed after 7-day timeout.")}
+                    disabled={actionLoading === "claim"}
+                    onClick={() => runAction(() => claimAfterTimeout(task.id), "Payment claimed after 7-day timeout.", "claim")}
                     className="mt-2 text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors underline underline-offset-2 cursor-pointer disabled:opacity-50"
                   >
                     Claim payment after 7-day timeout
@@ -364,19 +365,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
-                    disabled={loading}
-                    onClick={() => runAction(() => approveTask(task.id), "Submission approved. Payment can now be released.")}
+                    disabled={actionLoading === "approve"}
+                    onClick={() => runAction(() => approveTask(task.id), "Submission approved. Payment can now be released.", "approve")}
                     className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     <IconCheck className="w-4 h-4" />
-                    Approve
+                    {actionLoading === "approve" ? "Approving..." : "Approve"}
                   </button>
                   <button
-                    disabled={loading || !feedback.trim()}
-                    onClick={() => runAction(() => requestRevision(task.id, feedback.trim()), "Revision requested and sent back to the worker.")}
+                    disabled={actionLoading === "revision" || !feedback.trim()}
+                    onClick={() => runAction(() => requestRevision(task.id, feedback.trim()), "Revision requested and sent back to the worker.", "revision")}
                     className="outline-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60"
                   >
-                    Request Revision
+                    {actionLoading === "revision" ? "Requesting..." : "Request Revision"}
                   </button>
                 </div>
               </>
@@ -384,12 +385,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
             {task.status === "approved" && isCreator && (
               <button
-                disabled={loading}
+                disabled={actionLoading === "release"}
                 onClick={() => setConfirmOpen(true)}
                 className="gradient-btn text-white font-semibold px-5 py-3 rounded-2xl cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 <IconCoin className="w-4 h-4" />
-                {loading ? "Paying..." : "Release Payment"}
+                {actionLoading === "release" ? "Paying..." : "Release Payment"}
               </button>
             )}
 
@@ -545,7 +546,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
           setConfirmOpen(false);
-          void runAction(() => releasePayment(task.id), "Payment released. This task is now complete.");
+          void runAction(() => releasePayment(task.id), "Payment released. This task is now complete.", "release");
         }}
       />
 
