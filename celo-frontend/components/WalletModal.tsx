@@ -98,7 +98,18 @@ export default function WalletModal({ open, onClose }: Props) {
                 {isLoading ? <span className="skeleton inline-block w-24 h-8 rounded-lg" /> : `${balance ?? "0.0000"}`}
                 <span className="text-slate-400 text-sm font-normal ml-2">cUSD</span>
               </p>
-              {address && <p className="text-slate-500 text-xs font-mono mt-1">{address.slice(0, 6)}...{address.slice(-6)}</p>}
+              {address && (
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-slate-500 text-xs font-mono">{address.slice(0, 6)}...{address.slice(-6)}</p>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(address)}
+                    className="text-slate-600 hover:text-teal-400 transition-colors text-xs cursor-pointer"
+                    title="Copy address"
+                  >
+                    Copy
+                  </button>
+                </div>
+              )}
               <p className="text-slate-600 text-xs mt-1">To send cUSD to another wallet, use the Withdraw tab.</p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
