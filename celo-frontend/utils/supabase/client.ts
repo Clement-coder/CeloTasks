@@ -11,3 +11,9 @@ export function getSupabase() {
   }
   return client;
 }
+
+// Reset singleton on hot reload in development
+if (process.env.NODE_ENV === "development" && typeof module !== "undefined") {
+  // @ts-expect-error HMR cleanup
+  if (module.hot) { module.hot.dispose(() => { client = null; }); }
+}
