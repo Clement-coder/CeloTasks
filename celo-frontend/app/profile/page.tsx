@@ -306,7 +306,7 @@ export default function ProfilePage() {
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((task) => {
                 const STATUS_COLORS: Record<TaskStatus, string> = {
-                  open: "text-teal-400", in_progress: "text-amber-300", submitted: "text-sky-300",
+                  draft: "text-slate-400", open: "text-teal-400", in_progress: "text-amber-300", submitted: "text-sky-300",
                   approved: "text-green-300", paid: "text-fuchsia-300", cancelled: "text-red-400",
                 };
                 const role = task.creator === currentUser ? "Creator" : "Worker";
