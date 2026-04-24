@@ -257,14 +257,16 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   // ── Realtime subscriptions ──────────────────────────────────────────────────
   useEffect(() => {
     const db = getSupabase();
+    let timer: ReturnType<typeof setTimeout>;
+    const debouncedFetch = () => { clearTimeout(timer); timer = setTimeout(() => fetchAll(), 300); };
     const channel = db
       .channel("celotasks-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_applications" }, () => fetchAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, () => fetchAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "activity" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, debouncedFetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_applications" }, debouncedFetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, debouncedFetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "activity" }, debouncedFetch)
       .subscribe();
-    return () => { db.removeChannel(channel); };
+    return () => { clearTimeout(timer); db.removeChannel(channel); };
   }, [fetchAll]);
 
   // ── setMyAddress — also upsert profile ─────────────────────────────────────
