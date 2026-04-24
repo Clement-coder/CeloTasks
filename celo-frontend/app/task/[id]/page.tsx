@@ -19,6 +19,7 @@ import {
 } from "@/components/Icons";
 
 const STATUS_STYLES = {
+  draft: "text-slate-400 bg-slate-400/10 border-slate-400/20",
   open: "text-teal-400 bg-teal-400/10 border-teal-400/20",
   in_progress: "text-amber-300 bg-amber-400/10 border-amber-400/20",
   submitted: "text-sky-300 bg-sky-400/10 border-sky-400/20",
@@ -28,6 +29,7 @@ const STATUS_STYLES = {
 };
 
 const STATUS_LABELS = {
+  draft: "Draft",
   open: "Open",
   in_progress: "In Progress",
   submitted: "Needs Review",
