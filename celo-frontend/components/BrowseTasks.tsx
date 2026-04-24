@@ -5,6 +5,7 @@ import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
 import { IconPlus, IconSearch, IconTrendingUp, IconStar, IconCoin, IconClock } from "@/components/Icons";
 import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
+import { usePrivy } from "@privy-io/react-auth";
 import { type ToastType } from "@/hooks/useToast";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import CustomSelect from "@/components/CustomSelect";
@@ -22,6 +23,7 @@ const SORT_OPTIONS = [
 
 export default function BrowseTasks({ onToast }: Props) {
   const { browseTasks, acceptTask } = useTaskStore();
+  const { authenticated, login } = usePrivy();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -64,6 +66,7 @@ export default function BrowseTasks({ onToast }: Props) {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleAccept = async (id: string) => {
+    if (!authenticated) { login(); return; }
     setLoadingId(id);
     try {
       await acceptTask(id);
