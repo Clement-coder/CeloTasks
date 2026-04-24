@@ -20,7 +20,7 @@ import { useReputationScore } from "@/hooks/useReputationScore";
 export default function ProfilePage() {
   const { address } = useAccount();
   const { login, logout, ready, authenticated, user } = usePrivy();
-  const { currentUser, myAcceptedTasks, myCreatedTasks, stats, profile } = useTaskStore();
+  const { currentUser, myAcceptedTasks, myCreatedTasks, stats, profile, loading: storeLoading } = useTaskStore();
   const { score: repScore, level: repLevel } = useReputationScore(address);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -69,6 +69,14 @@ export default function ProfilePage() {
     return acc;
   }, {});
   const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  if (storeLoading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
