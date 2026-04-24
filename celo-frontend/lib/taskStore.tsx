@@ -480,6 +480,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       amount_wei:    parseEther(task.reward).toString(),
       amount_cusd:   Number(task.reward),
       block_number:  Number(receipt.blockNumber),
+      confirmed_at:  new Date().toISOString(),
     });
 
     const { error } = await db.from("tasks").update({
@@ -581,6 +582,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       amount_wei:    parseEther(task.reward).toString(),
       amount_cusd:   Number(task.reward),
       block_number:  Number(receipt.blockNumber),
+      confirmed_at:  new Date().toISOString(),
     });
     await db.from("tasks").update({
       status:  "paid",
