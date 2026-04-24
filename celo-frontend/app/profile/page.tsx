@@ -130,9 +130,9 @@ export default function ProfilePage() {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end gap-6 justify-between">
           <div className="flex items-center gap-5">
             {/* Avatar */}
-            <button onClick={() => setProfileOpen(true)}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/10 hover:border-teal-500/40 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
-              style={{ background: "rgba(20,184,166,0.1)" }}>
+            <button onClick={() => authenticated && setProfileOpen(true)}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/10 hover:border-teal-500/40 transition-colors shrink-0 flex items-center justify-center"
+              style={{ background: "rgba(20,184,166,0.1)", cursor: authenticated ? "pointer" : "default" }}>
               {avatarUrl
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
@@ -141,11 +141,11 @@ export default function ProfilePage() {
             <div>
               <p className="text-teal-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1">Profile</p>
               <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight flex items-center gap-3 flex-wrap">
-                {displayName ?? (address ? shortenAddress(address) : "Anonymous")}
+                {authenticated ? (displayName ?? (address ? shortenAddress(address) : "Anonymous")) : "Not signed in"}
                 {isVerified && <VerifiedBadge />}
               </h1>
               {displayEmail && <p className="text-slate-400 text-sm mt-1">{displayEmail}</p>}
-              {!displayName && (
+              {authenticated && !displayName && (
                 <button onClick={() => setProfileOpen(true)}
                   className="text-teal-400 text-xs mt-1 hover:text-teal-300 transition-colors underline underline-offset-2 cursor-pointer">
                   + Add display name
