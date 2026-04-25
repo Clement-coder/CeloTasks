@@ -80,6 +80,14 @@ const TASKS_ABI = [
     inputs: [{ name: "taskId", type: "uint256" }], outputs: [{ name: "", type: "uint8" }] },
   { name: "taskCount",  type: "function", stateMutability: "view",
     inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  // Custom errors — allows viem to decode revert reasons
+  { name: "NotCreator",        type: "error", inputs: [] },
+  { name: "NotWorker",         type: "error", inputs: [] },
+  { name: "WrongStatus",       type: "error", inputs: [{ name: "current", type: "uint8" }, { name: "expected", type: "uint8" }] },
+  { name: "MaxRevisionsReached", type: "error", inputs: [] },
+  { name: "DeadlineNotPassed", type: "error", inputs: [] },
+  { name: "TimeoutNotReached", type: "error", inputs: [] },
+  { name: "TransferFailed",    type: "error", inputs: [] },
 ];
 
 const CUSD_ABI = [
@@ -195,16 +203,24 @@ async function main() {
   }
 
   // ── Step 1: Approve cUSD ──────────────────────────────────────────────────
+  // Check existing allowance — only approve if needed
   console.log("\n── Step 1: Approve cUSD ──");
-  await retry(() => sendTx(
-    creatorW,
-    { address: CUSD, abi: CUSD_ABI, functionName: "approve", args: [CELOTASKS, totalNeeded] },
-    "cUSD.approve"
-  ), "cUSD.approve");
-
-  await read("allowance confirmed", () =>
+  const existingAllowance = await read("existing allowance", () =>
     pub.readContract({ address: CUSD, abi: CUSD_ABI, functionName: "allowance", args: [creator.address, CELOTASKS] })
   );
+
+  if (BigInt(existingAllowance) < totalNeeded) {
+    await retry(() => sendTx(
+      creatorW,
+      { address: CUSD, abi: CUSD_ABI, functionName: "approve", args: [CELOTASKS, totalNeeded] },
+      "cUSD.approve"
+    ), "cUSD.approve");
+    await read("allowance confirmed", () =>
+      pub.readContract({ address: CUSD, abi: CUSD_ABI, functionName: "allowance", args: [creator.address, CELOTASKS] })
+    );
+  } else {
+    console.log(`  ✓ Existing allowance sufficient (${formatUnits(BigInt(existingAllowance), 18)} cUSD)`);
+  }
 
   // ── Step 2: 20 full lifecycle tasks ──────────────────────────────────────
   console.log(`\n── Step 2: ${FULL_TASKS} Full Lifecycle Tasks (create→assign→submit→approve→release) ──`);
