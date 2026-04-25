@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState, useCallback, useEffect } from "react";
+import { use, useState, useCallback, useEffect, useRef } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastContainer from "@/components/ToastContainer";
 import { useToast } from "@/hooks/useToast";
@@ -62,6 +62,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
   const [paymentTxHash, setPaymentTxHash] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  // Tick every 60s so the countdown stays accurate while the page is open
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
 
   // Fetch the payment tx hash from onchain_payments (not the create tx)
@@ -166,7 +172,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-white">{task.durationHours}h after accepting</p>
               {task.acceptedAt && task.status !== "paid" && task.status !== "cancelled" && (() => {
                 const dueMs = new Date(task.acceptedAt).getTime() + Number(task.durationHours) * 3600000;
-                const diffMs = dueMs - Date.now();
+                const diffMs = dueMs - now;
                 const diffH = Math.ceil(diffMs / 3600000);
                 const label = diffMs < 0 ? "Overdue" : diffH < 1 ? "< 1h left" : `${diffH}h left`;
                 const urgent = diffMs < 3 * 3600000;
