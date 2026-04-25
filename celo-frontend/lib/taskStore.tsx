@@ -223,35 +223,42 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const fetchAll = useCallback(async () => {
     const db = getSupabase();
 
-    const [{ data: taskRows }, { data: appRows }, { data: subRows }, { data: actRows }] = await Promise.all([
-      db.from("tasks").select("*").order("created_at", { ascending: false }),
-      db.from("task_applications").select("*").order("applied_at", { ascending: true }),
-      db.from("task_submissions").select("*"),
-      db.from("activity").select("*").order("at", { ascending: false }),
-    ]);
+    try {
+      const [{ data: taskRows, error: e1 }, { data: appRows }, { data: subRows }, { data: actRows }] = await Promise.all([
+        db.from("tasks").select("*").order("created_at", { ascending: false }),
+        db.from("task_applications").select("*").order("applied_at", { ascending: true }),
+        db.from("task_submissions").select("*"),
+        db.from("activity").select("*").order("at", { ascending: false }),
+      ]);
 
-    const appsMap: Record<string, TaskApplication[]> = {};
-    for (const row of (appRows ?? []) as Record<string, unknown>[]) {
-      const tid = row.task_id as string;
-      if (!appsMap[tid]) appsMap[tid] = [];
-      appsMap[tid].push({ applicant: row.applicant as string, note: row.note as string, appliedAt: row.applied_at as string });
+      if (e1) { console.error("[fetchAll] tasks error:", e1); }
+
+      const appsMap: Record<string, TaskApplication[]> = {};
+      for (const row of (appRows ?? []) as Record<string, unknown>[]) {
+        const tid = row.task_id as string;
+        if (!appsMap[tid]) appsMap[tid] = [];
+        appsMap[tid].push({ applicant: row.applicant as string, note: row.note as string, appliedAt: row.applied_at as string });
+      }
+
+      const subMap: Record<string, TaskSubmission> = {};
+      for (const row of (subRows ?? []) as Record<string, unknown>[]) {
+        const tid = row.task_id as string;
+        subMap[tid] = {
+          proofText:      row.proof_text as string,
+          proofLink:      row.proof_link as string,
+          submittedAt:    row.submitted_at as string,
+          attachmentName: (row.attachment_name as string) ?? undefined,
+          attachmentData: (row.attachment_url as string) ?? undefined,
+        };
+      }
+
+      setTasks((taskRows ?? []).map((r: Record<string, unknown>) => rowToTask(r, appsMap[r.id as string] ?? [], subMap[r.id as string])));
+      setActivity((actRows ?? []).map((r: Record<string, unknown>) => rowToActivity(r)));
+    } catch (err) {
+      console.error("[fetchAll] unexpected error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    const subMap: Record<string, TaskSubmission> = {};
-    for (const row of (subRows ?? []) as Record<string, unknown>[]) {
-      const tid = row.task_id as string;
-      subMap[tid] = {
-        proofText:      row.proof_text as string,
-        proofLink:      row.proof_link as string,
-        submittedAt:    row.submitted_at as string,
-        attachmentName: (row.attachment_name as string) ?? undefined,
-        attachmentData: (row.attachment_url as string) ?? undefined,
-      };
-    }
-
-    setTasks((taskRows ?? []).map((r: Record<string, unknown>) => rowToTask(r, appsMap[r.id as string] ?? [], subMap[r.id as string])));
-    setActivity((actRows ?? []).map((r: Record<string, unknown>) => rowToActivity(r)));
-    setLoading(false);
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
