@@ -43,7 +43,7 @@ const CUSD      = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const REWARD       = parseUnits("0.01", 18); // 0.01 cUSD per task
-const FULL_TASKS   = 20;
+const FULL_TASKS   = 20; // 5 txs each = 100 write txs
 const CANCEL_TASKS = 5;
 
 const CREATOR_KEY = process.env.CREATOR_KEY;
