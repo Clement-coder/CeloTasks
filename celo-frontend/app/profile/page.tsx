@@ -66,7 +66,7 @@ export default function ProfilePage() {
 
   const myCreated  = authenticated ? myCreatedTasks  : [];
   const myAccepted = authenticated ? myAcceptedTasks : [];
-  const myStats    = authenticated ? stats : { openTasks: 0, inProgressTasks: 0, reviewQueue: 0, readyForPayout: 0, earnings: 0, spend: 0, successRate: 100 };
+  const myStats    = authenticated ? stats : { openTasks: 0, inProgressTasks: 0, reviewQueue: 0, readyForPayout: 0, earnings: 0, spend: 0, successRate: 0 };
 
   const categoryCounts = [...myAccepted, ...myCreated].reduce<Record<string, number>>((acc, task) => {
     acc[task.category] = (acc[task.category] || 0) + 1;
@@ -199,7 +199,7 @@ export default function ProfilePage() {
           { label: "Tasks Created", value: myCreated.length,          icon: <IconPlus className="w-5 h-5 text-teal-400" /> },
           { label: "Tasks Worked",  value: myAccepted.length,         icon: <IconCheck className="w-5 h-5 text-green-300" /> },
           { label: "Total Earned",  value: `${myStats.earnings.toFixed(0)} cUSD`, icon: <IconCoin className="w-5 h-5 text-fuchsia-300" /> },
-          { label: "Success Rate",  value: `${myStats.successRate}%`,        icon: <IconTrendingUp className="w-5 h-5 text-amber-300" /> },
+          { label: "Success Rate",  value: myAccepted.length === 0 ? "—" : `${myStats.successRate}%`, icon: <IconTrendingUp className="w-5 h-5 text-amber-300" /> },
         ].map((item) => (
           <div key={item.label} className="glass-card rounded-3xl p-5 flex gap-4 items-start">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-white/[0.08]"
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                 <div className="flex justify-between"><span className="text-slate-400">Accepted</span><span className="text-white">{myAccepted.length}</span></div>
                 <div className="flex justify-between"><span className="text-slate-400">Paid completions</span><span className="text-white">{myAccepted.filter((t) => t.status === "paid").length}</span></div>
                 <div className="flex justify-between"><span className="text-slate-400">Earnings</span><span className="text-white">{myStats.earnings.toFixed(0)} cUSD</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Reliability</span><span className="text-white">{myStats.successRate}%</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Reliability</span><span className="text-white">{myAccepted.length === 0 ? "—" : `${myStats.successRate}%`}</span></div>
               </div>
             </div>
           </div>

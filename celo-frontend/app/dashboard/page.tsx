@@ -109,7 +109,9 @@ export default function DashboardPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 uppercase tracking-wider">Reputation Score</p>
-            <span className="gradient-text font-bold text-base sm:text-xl leading-none">{stats.successRate}%</span>
+            <span className="gradient-text font-bold text-base sm:text-xl leading-none">
+              {myAcceptedTasks.length === 0 ? "—" : `${stats.successRate}%`}
+            </span>
             <div className="mt-1.5 h-1 sm:h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${stats.successRate}%`, background: "linear-gradient(90deg, #14b8a6, #22c55e)" }} />
             </div>
