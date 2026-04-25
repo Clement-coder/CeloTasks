@@ -1,9 +1,8 @@
 "use client";
 import { useReadContract } from "wagmi";
 import { celo } from "wagmi/chains";
+import { CUSD_ADDRESS } from "@/lib/abi";
 
-// Celo mainnet cUSD token address
-const CUSD_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as const;
 const ERC20_ABI = [
   { name: "balanceOf", type: "function", stateMutability: "view",
     inputs: [{ name: "account", type: "address" }],
