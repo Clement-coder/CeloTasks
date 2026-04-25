@@ -282,3 +282,15 @@ main().catch((err) => {
   console.error("\n❌ Error:", err.shortMessage || err.message);
   process.exit(1);
 });
+
+// retry: attempt fn up to 3 times on failure
+async function retry(fn, label, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    try { return await fn(); }
+    catch (e) {
+      if (i === attempts) throw e;
+      console.log(`  ⚠ Retry ${i}/${attempts} for ${label}: ${e.shortMessage || e.message}`);
+      await new Promise(r => setTimeout(r, 2000 * i));
+    }
+  }
+}
