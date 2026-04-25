@@ -133,13 +133,13 @@ async function sendTx(client, params, label) {
   const nonce = await getNonce(client.account.address);
   const hash = await client.writeContract({ ...params, nonce });
   await sleep(TX_DELAY_MS);
-  const receipt = await pub.waitForTransactionReceipt({ hash, timeout: 60_000 });
+  const receipt = await pub.waitForTransactionReceipt({ hash, timeout: 120_000, pollingInterval: 2_000 });
   if (receipt.status !== "success") throw new Error(`TX reverted: ${hash}`);
   console.log(`[${++n}] WRITE ${label} → ${receipt.status} | https://celoscan.io/tx/${hash}`);
   return receipt;
 }
 
-/** Retry wrapper — 3 attempts with exponential backoff. */
+/** Retry wrapper — 3 attempts with exponential backoff. Re-fetches nonce on retry. */
 async function retry(fn, label, attempts = 3) {
   for (let i = 1; i <= attempts; i++) {
     try { return await fn(); }
@@ -147,6 +147,8 @@ async function retry(fn, label, attempts = 3) {
       if (i === attempts) throw e;
       const wait = 3000 * i;
       console.log(`  ⚠ Retry ${i}/${attempts} for ${label} (${e.shortMessage || e.message}) — waiting ${wait}ms`);
+      // Reset cached nonces so next attempt fetches fresh from chain
+      for (const addr of Object.keys(nonces)) { nonces[addr] = null; }
       await sleep(wait);
     }
   }
