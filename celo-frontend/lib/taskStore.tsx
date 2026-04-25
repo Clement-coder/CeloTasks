@@ -588,6 +588,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task?.chainTaskId) throw new Error("No onchain task ID found.");
     if (!walletClient || !publicClient) throw new Error("Wallet not connected.");
+    if (task.acceptor !== currentUser) throw new Error("Only the assigned worker can claim after timeout.");
     const tx = await walletClient.writeContract({
       address: CELOTASKS_ADDRESS, abi: CELOTASKS_ABI, functionName: "claimAfterTimeout",
       args: [BigInt(task.chainTaskId)],
