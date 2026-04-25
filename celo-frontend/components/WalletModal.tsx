@@ -6,8 +6,8 @@ import { parseUnits, isAddress } from "viem";
 import { celo } from "wagmi/chains";
 import { IconX, IconArrowDown, IconArrowUp, IconCreditCard, IconWallet } from "@/components/Icons";
 import { useCUSDBalance } from "@/hooks/useCUSDBalance";
+import { CUSD_ADDRESS } from "@/lib/abi";
 
-const CUSD_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as const;
 const ERC20_TRANSFER_ABI = [
   { name: "transfer", type: "function", stateMutability: "nonpayable",
     inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
