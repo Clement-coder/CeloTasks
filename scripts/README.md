@@ -18,3 +18,8 @@ CREATOR_KEY=0x... WORKER_KEY=0x... node interact.js
 
 ## Contract
 `0xe289c5F77Bf51BB187C302364b779f4CAF572aEb` on Celo Mainnet
+
+## Troubleshooting
+- **Nonce error**: script tracks nonces locally, just re-run
+- **Insufficient cUSD**: fund creator with 0.25+ cUSD on Celo Mainnet
+- **No gas**: fund both wallets with 0.1 CELO each
