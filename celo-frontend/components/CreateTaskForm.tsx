@@ -62,12 +62,13 @@ export default function CreateTaskForm({ onSuccess }: Props) {
     if (form.title.length > 80) errs.title = "Max 80 characters";
     if (!form.description.trim()) errs.description = "Description is required";
     if (form.description.length > 700) errs.description = "Max 700 characters";
-    if (!form.reward || Number(form.reward) <= 0) errs.reward = "Enter a valid reward";
+    if (!form.reward || isNaN(Number(form.reward)) || Number(form.reward) <= 0) errs.reward = "Enter a valid reward greater than 0";
     if (form.currency === "cUSD" && cusdBalance !== null && Number(form.reward) > Number(cusdBalance)) {
       errs.reward = `Insufficient cUSD balance (you have ${cusdBalance} cUSD)`;
     }
     if (form.currency === "CELO") errs.reward = "Only cUSD is supported for onchain escrow. Please select cUSD.";
     if (!form.durationHours || Number(form.durationHours) <= 0) errs.durationHours = "Required — how many hours does the worker have?";
+    if (Number(form.durationHours) > 8760) errs.durationHours = "Maximum duration is 8760 hours (1 year)";
     if (deliverables.length === 0) errs.deliverables = "Add at least one deliverable";
     if (!form.submissionGuide.trim()) errs.submissionGuide = "Required";
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
