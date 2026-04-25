@@ -38,6 +38,7 @@ export default function WalletModal({ open, onClose }: Props) {
   async function handleWithdraw() {
     setTxError(""); setTxHash("");
     if (!isAddress(toAddr)) { setTxError("Invalid address"); return; }
+    if (address && toAddr.toLowerCase() === address.toLowerCase()) { setTxError("Cannot send to your own address"); return; }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { setTxError("Invalid amount"); return; }
     if (balance && Number(amount) > Number(balance)) { setTxError(`Insufficient balance (you have ${balance} cUSD)`); return; }
     setConfirmSend(true);
