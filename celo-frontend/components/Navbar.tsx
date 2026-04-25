@@ -19,6 +19,7 @@ export default function Navbar() {
   const { address } = useAccount();
   const { balance: cusdBalance } = useCUSDBalance(address);
   const [miniPay, setMiniPay] = useState(false);
+  const [showMiniPayBanner, setShowMiniPayBanner] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const prevAuth = useRef<boolean | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -57,6 +58,15 @@ export default function Navbar() {
   }, [authenticated, ready, addToast]);
 
   function handleLogout() { setConfirmLogout(false); logout(); }
+
+  // MiniPay detection + banner for non-MiniPay mobile users
+  useEffect(() => {
+    const mp = isMiniPay();
+    setMiniPay(mp);
+    if (!mp && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      if (!sessionStorage.getItem("minipay_banner_dismissed")) setShowMiniPayBanner(true);
+    }
+  }, []);
 
   return (
     <>
@@ -264,6 +274,26 @@ export default function Navbar() {
       />
 
       <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
+
+      {/* MiniPay banner — shown on mobile non-MiniPay browsers */}
+      {showMiniPayBanner && (
+        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 z-[60] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-teal-500/30"
+          style={{ background: "rgba(11,15,20,0.97)", backdropFilter: "blur(16px)" }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(20,184,166,0.15)" }}>
+            <span className="text-base">📱</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-xs font-semibold">Best on MiniPay</p>
+            <p className="text-slate-400 text-[10px]">Open CeloTasks in MiniPay for instant cUSD payments.</p>
+          </div>
+          <a href="https://minipay.opera.com" target="_blank" rel="noreferrer"
+            className="gradient-btn text-white text-[10px] font-semibold px-3 py-1.5 rounded-xl shrink-0">
+            Open
+          </a>
+          <button onClick={() => { setShowMiniPayBanner(false); sessionStorage.setItem("minipay_banner_dismissed", "1"); }}
+            className="text-slate-500 hover:text-white transition-colors shrink-0 text-sm cursor-pointer">✕</button>
+        </div>
+      )}
     </>
   );
 }
