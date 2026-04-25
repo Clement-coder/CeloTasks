@@ -105,8 +105,14 @@ const pub     = createPublicClient({ chain: celo, transport: http() });
 const creatorW = createWalletClient({ account: creator, chain: celo, transport: http() });
 const workerW  = createWalletClient({ account: worker,  chain: celo, transport: http() });
 
+// Track nonces manually — fetch once, increment locally per tx
+const nonces = {};
 async function sendTx(client, params) {
-  const nonce = await pub.getTransactionCount({ address: client.account.address, blockTag: "pending" });
+  const addr = client.account.address;
+  if (nonces[addr] === undefined) {
+    nonces[addr] = await pub.getTransactionCount({ address: addr });
+  }
+  const nonce = nonces[addr]++;
   return client.writeContract({ ...params, nonce });
 }
 
