@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IconX, IconCheck, IconUsers } from "@/components/Icons";
 import { useTaskStore } from "@/lib/taskStore";
 
@@ -13,6 +13,16 @@ export default function CompleteProfileModal({ open, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Re-sync form fields whenever the modal opens
+  useEffect(() => {
+    if (open) {
+      setName(profile?.displayName ?? "");
+      setEmail(profile?.email ?? "");
+      setAvatar(profile?.avatarUrl ?? null);
+      setError("");
+    }
+  }, [open, profile?.displayName, profile?.email, profile?.avatarUrl]);
 
   if (!open) return null;
 
