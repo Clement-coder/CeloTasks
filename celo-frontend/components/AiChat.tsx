@@ -128,7 +128,7 @@ export default function AiChat() {
             <input
               className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
               style={{ background: "#1e2a35", color: "#f1f5f9", border: "1px solid #2d3f50" }}
-              placeholder="Ask anything…"
+              placeholder="Ask anything… (Enter to send)"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
