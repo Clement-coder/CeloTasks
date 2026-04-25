@@ -329,6 +329,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <input type="file" accept="image/*,.pdf,.zip" className="hidden" onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) { addToast("Attachment must be under 5 MB", "error"); return; }
                     const reader = new FileReader();
                     reader.onload = () => setAttachment({ name: file.name, data: reader.result as string });
                     reader.readAsDataURL(file);
