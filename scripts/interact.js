@@ -203,7 +203,7 @@ async function main() {
     await tx(
       await sendTx(workerW, {
         address: CELOTASKS, abi: TASKS_ABI, functionName: "submitWork",
-        args: [taskId, `ipfs://QmProofScript${i}`],
+        args: [taskId, `ipfs://QmPlaceholderProof${i}`],
       }),
       `submitWork taskId=${taskId}`
     );
