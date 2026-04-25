@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { IconArrowRight } from "@/components/Icons";
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center px-4 text-center gap-6">
       <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -12,6 +12,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
       <div>
         <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
         <p className="text-slate-400 text-sm max-w-xs mx-auto">An unexpected error occurred. Try refreshing or go back home.</p>
+        {error?.digest && <p className="text-slate-600 text-xs mt-1 font-mono">Error ID: {error.digest}</p>}
       </div>
       <div className="flex gap-3">
         <button onClick={reset} className="outline-btn text-slate-300 font-medium px-6 py-3 rounded-xl cursor-pointer">
