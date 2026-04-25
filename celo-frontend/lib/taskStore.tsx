@@ -608,7 +608,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
 
     await appendActivity(taskId, task.title, "accepted", applicant, "Selected by creator to work on this task.");
-  }, [tasks, walletClient, publicClient]);
+  }, [tasks, currentUser, walletClient, publicClient]);
 
   const getTask = useCallback((id: string) => tasks.find((t) => t.id === id), [tasks]);
 

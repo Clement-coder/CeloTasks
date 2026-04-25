@@ -21,7 +21,7 @@ const STATUS_FILTERS: { label: string; value: TaskStatus | "all" }[] = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
-export default function MyTasks({ onToast }: Props) {
+export default function MyTasks(_: { onToast?: (msg: string, type?: ToastType) => void }) {
   const router = useRouter();
   const { myCreatedTasks, myAcceptedTasks, reviewQueue, paymentQueue } = useTaskStore();
   const [filter, setFilter] = useState<TaskStatus | "all">("all");

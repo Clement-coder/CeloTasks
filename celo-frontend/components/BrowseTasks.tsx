@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
-import { IconPlus, IconSearch, IconStar, IconCoin } from "@/components/Icons";
+import { IconSearch, IconStar } from "@/components/Icons";
 import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
 import { usePrivy } from "@privy-io/react-auth";
 import { type ToastType } from "@/hooks/useToast";

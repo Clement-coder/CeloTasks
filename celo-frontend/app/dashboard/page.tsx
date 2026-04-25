@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const { balance: cusdBalance, isLoading: cusdLoading } = useCUSDBalance(address);
   const [tab, setTab] = useState<Tab>("browse");
   const { toasts, addToast, removeToast } = useToast();
-  const { stats, reviewQueue, paymentQueue, myAcceptedTasks, loading: storeLoading } = useTaskStore();
+  const { stats, myAcceptedTasks, loading: storeLoading } = useTaskStore();
 
   if (!authenticated) {
     return (

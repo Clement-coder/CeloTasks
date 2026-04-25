@@ -11,7 +11,7 @@ export default function NotFound() {
       <div>
         <p className="gradient-text font-bold text-6xl mb-2">404</p>
         <h2 className="text-xl font-bold text-white mb-2">Page not found</h2>
-        <p className="text-slate-400 text-sm max-w-xs mx-auto">The page you're looking for doesn't exist or has been moved.</p>
+        <p className="text-slate-400 text-sm max-w-xs mx-auto">The page you&apos;re looking for doesn&apos;t exist or has been moved.</p>
       </div>
       <Link href="/" className="gradient-btn text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
         <IconArrowRight className="w-4 h-4 rotate-180" /> Back to Home
