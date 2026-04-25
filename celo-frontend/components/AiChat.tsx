@@ -31,7 +31,9 @@ export default function AiChat() {
     setLoading(true);
 
     try {
-      const history = next.map((m) => ({
+      // Keep only last 20 messages to avoid context overflow
+      const trimmed = next.slice(-20);
+      const history = trimmed.map((m) => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
