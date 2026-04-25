@@ -14,3 +14,4 @@
 *.pem
 .local-node/
 scripts/node_modules/
+scripts/.env
