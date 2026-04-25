@@ -31,10 +31,11 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       onClick={(e) => e.target === overlayRef.current && onClose()}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      role="dialog" aria-modal="true" aria-labelledby="modal-title"
     >
       <div className="glass-card rounded-2xl w-full max-w-md p-6 fade-up">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <h2 id="modal-title" className="text-lg font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 cursor-pointer"
