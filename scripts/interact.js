@@ -36,6 +36,7 @@ import { celo } from "viem/chains";
 
 // ── Addresses ─────────────────────────────────────────────────────────────────
 
+// Celo Mainnet chainId: 42220
 const CELOTASKS = "0xe289c5F77Bf51BB187C302364b779f4CAF572aEb";
 const CUSD      = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
 
