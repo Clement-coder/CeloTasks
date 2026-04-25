@@ -15,13 +15,6 @@
  *
  * CONTRACT: 0xe289c5F77Bf51BB187C302364b779f4CAF572aEb (Celo Mainnet)
  * NETWORK:  Celo Mainnet (chainId 42220)
- *
- * INTERACTION BREAKDOWN (≥100):
- *   - 1  approve cUSD allowance
- *   - 20 full lifecycle tasks × 5 txs (create/assign/submit/approve/release) = 100 txs
- *   - 5  cancelled tasks × 2 txs (create/cancel)                             =  10 txs
- *   - ~30 read calls scattered throughout
- *   TOTAL: ~141 interactions
  */
 
 import {
@@ -36,15 +29,19 @@ import { celo } from "viem/chains";
 
 // ── Addresses ─────────────────────────────────────────────────────────────────
 
-// Celo Mainnet chainId: 42220
 const CELOTASKS = "0xe289c5F77Bf51BB187C302364b779f4CAF572aEb";
 const CUSD      = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
 
+// TaskCreated event topic0 — keccak256("TaskCreated(uint256,address,uint256,uint256)")
+// Verified from live tx 0x75e09de896ea1d92615a27e30ce9506103ea2e5602db31668ca61e64e6550187
+const TASK_CREATED_TOPIC = "0xedce45cc3fc2bea98c94b72104f4a750dcc91bd183a01870ed4f93a365eba5b9";
+
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const REWARD       = parseUnits("0.01", 18); // 0.01 cUSD per task // 0.01 cUSD per task
-const FULL_TASKS   = 20; // 5 txs each = 100 write txs
-const CANCEL_TASKS = 5;
+const REWARD       = parseUnits("0.01", 18); // 0.01 cUSD per task
+const FULL_TASKS   = 20;                     // 5 txs each = 100 write txs
+const CANCEL_TASKS = 5;                      // 2 txs each = 10 write txs
+const TX_DELAY_MS  = 1500;                   // ms between txs — avoids RPC rate limits
 
 const CREATOR_KEY = process.env.CREATOR_KEY;
 const WORKER_KEY  = process.env.WORKER_KEY;
@@ -98,45 +95,73 @@ const CUSD_ABI = [
 
 // ── Clients ───────────────────────────────────────────────────────────────────
 
-const creator = privateKeyToAccount(CREATOR_KEY);
-const worker  = privateKeyToAccount(WORKER_KEY);
+const creator  = privateKeyToAccount(CREATOR_KEY);
+const worker   = privateKeyToAccount(WORKER_KEY);
 
-const pub     = createPublicClient({ chain: celo, transport: http() });
-const creatorW = createWalletClient({ account: creator, chain: celo, transport: http() });
-const workerW  = createWalletClient({ account: worker,  chain: celo, transport: http() });
+const pub      = createPublicClient({ chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
+const creatorW = createWalletClient({ account: creator, chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
+const workerW  = createWalletClient({ account: worker,  chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
 
-// Track nonces manually — fetch once, increment locally per tx
+// ── Nonce management ──────────────────────────────────────────────────────────
+// Fetch nonce from chain at start of each address's first tx, then increment locally.
+// Always use blockTag: "latest" (not "pending") to avoid stale nonce from prior runs.
+
 const nonces = {};
-async function sendTx(client, params) {
-  const addr = client.account.address;
-  if (nonces[addr] == null) {
-    nonces[addr] = await pub.getTransactionCount({ address: addr });
+
+async function getNonce(address) {
+  if (nonces[address] == null) {
+    nonces[address] = await pub.getTransactionCount({ address, blockTag: "latest" });
   }
-  const nonce = nonces[addr]++;
-  return client.writeContract({ ...params, nonce });
+  return nonces[address]++;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 let n = 0;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function tx(hash, label) {
-  const r = await pub.waitForTransactionReceipt({ hash });
-  console.log(`[${++n}] WRITE ${label} → ${r.status} | https://celoscan.io/tx/${hash}`);
-  return r;
+/** Send a tx with manual nonce, wait for receipt, log result. */
+async function sendTx(client, params, label) {
+  const nonce = await getNonce(client.account.address);
+  const hash = await client.writeContract({ ...params, nonce });
+  await sleep(TX_DELAY_MS);
+  const receipt = await pub.waitForTransactionReceipt({ hash, timeout: 60_000 });
+  if (receipt.status !== "success") throw new Error(`TX reverted: ${hash}`);
+  console.log(`[${++n}] WRITE ${label} → ${receipt.status} | https://celoscan.io/tx/${hash}`);
+  return receipt;
 }
 
-// Extract taskId from TaskCreated event log (topic[1] is the indexed taskId)
-function taskIdFromReceipt(receipt) {
-  const log = receipt.logs.find(l => l.address.toLowerCase() === CELOTASKS.toLowerCase());
-  if (!log) throw new Error("TaskCreated log not found in receipt");
-  return BigInt(log.topics[1]);
+/** Retry wrapper — 3 attempts with exponential backoff. */
+async function retry(fn, label, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    try { return await fn(); }
+    catch (e) {
+      if (i === attempts) throw e;
+      const wait = 3000 * i;
+      console.log(`  ⚠ Retry ${i}/${attempts} for ${label} (${e.shortMessage || e.message}) — waiting ${wait}ms`);
+      await sleep(wait);
+    }
+  }
 }
 
+/** Read a contract value and log it. */
 async function read(label, fn) {
   const v = await fn();
   console.log(`[${++n}] READ  ${label}: ${v}`);
   return v;
+}
+
+/**
+ * Extract taskId from a createTask receipt.
+ * Matches by TASK_CREATED_TOPIC (topic0) so it's immune to other events in the same tx.
+ */
+function taskIdFromReceipt(receipt) {
+  const log = receipt.logs.find(
+    l => l.address.toLowerCase() === CELOTASKS.toLowerCase() &&
+         l.topics[0]?.toLowerCase() === TASK_CREATED_TOPIC.toLowerCase()
+  );
+  if (!log || !log.topics[1]) throw new Error("TaskCreated event not found in receipt");
+  return BigInt(log.topics[1]);
 }
 
 const deadline = () => BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60);
@@ -152,7 +177,7 @@ async function main() {
   console.log(`Contract: https://celoscan.io/address/${CELOTASKS}`);
   console.log("=".repeat(60) + "\n");
 
-  // Pre-flight checks
+  // ── Pre-flight checks ─────────────────────────────────────────────────────
   const creatorBal = await read("creator cUSD balance", () =>
     pub.readContract({ address: CUSD, abi: CUSD_ABI, functionName: "balanceOf", args: [creator.address] })
   );
@@ -169,73 +194,71 @@ async function main() {
     process.exit(1);
   }
 
-  // Approve cUSD allowance for all tasks at once
+  // ── Step 1: Approve cUSD ──────────────────────────────────────────────────
   console.log("\n── Step 1: Approve cUSD ──");
-  await tx(
-    await sendTx(creatorW, { address: CUSD, abi: CUSD_ABI, functionName: "approve", args: [CELOTASKS, totalNeeded] }),
+  await retry(() => sendTx(
+    creatorW,
+    { address: CUSD, abi: CUSD_ABI, functionName: "approve", args: [CELOTASKS, totalNeeded] },
     "cUSD.approve"
-  );
+  ), "cUSD.approve");
+
   await read("allowance confirmed", () =>
     pub.readContract({ address: CUSD, abi: CUSD_ABI, functionName: "allowance", args: [creator.address, CELOTASKS] })
   );
 
-  // ── 20 full lifecycle tasks ───────────────────────────────────────────────
+  // ── Step 2: 20 full lifecycle tasks ──────────────────────────────────────
   console.log(`\n── Step 2: ${FULL_TASKS} Full Lifecycle Tasks (create→assign→submit→approve→release) ──`);
 
   for (let i = 1; i <= FULL_TASKS; i++) {
     console.log(`\n  [Task ${i}/${FULL_TASKS}]`);
 
-    // 1. createTask — get taskId directly from receipt logs
-    const createReceipt = await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "createTask",
-        args: [REWARD, deadline(), `ipfs://QmPlaceholderMetadata${i}`],
-      }),
+    // 1. createTask
+    const createReceipt = await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "createTask",
+        args: [REWARD, deadline(), `ipfs://QmCeloTasksMeta${i}`] },
       `createTask #${i}`
-    );
+    ), `createTask #${i}`);
+
     const taskId = taskIdFromReceipt(createReceipt);
     console.log(`       taskId=${taskId}`);
 
-    // 2. assignWorker
-    await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "assignWorker",
-        args: [taskId, worker.address],
-      }),
+    // 2. assignWorker (creator)
+    await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "assignWorker",
+        args: [taskId, worker.address] },
       `assignWorker taskId=${taskId}`
-    );
+    ), `assignWorker taskId=${taskId}`);
 
-    // 3. submitWork
-    await tx(
-      await sendTx(workerW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "submitWork",
-        args: [taskId, `ipfs://QmPlaceholderProof${i}`],
-      }),
+    // 3. submitWork (worker)
+    await retry(() => sendTx(
+      workerW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "submitWork",
+        args: [taskId, `ipfs://QmCeloTasksProof${i}`] },
       `submitWork taskId=${taskId}`
-    );
+    ), `submitWork taskId=${taskId}`);
 
     // Read status after submission
     await read(`getStatus taskId=${taskId}`, () =>
       pub.readContract({ address: CELOTASKS, abi: TASKS_ABI, functionName: "getStatus", args: [taskId] })
     );
 
-    // 4. approveTask
-    await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "approveTask",
-        args: [taskId],
-      }),
+    // 4. approveTask (creator)
+    await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "approveTask",
+        args: [taskId] },
       `approveTask taskId=${taskId}`
-    );
+    ), `approveTask taskId=${taskId}`);
 
-    // 5. releasePayment
-    await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "releasePayment",
-        args: [taskId],
-      }),
+    // 5. releasePayment (creator)
+    await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "releasePayment",
+        args: [taskId] },
       `releasePayment taskId=${taskId}`
-    );
+    ), `releasePayment taskId=${taskId}`);
 
     // Read full task state every 5 tasks
     if (i % 5 === 0) {
@@ -245,29 +268,28 @@ async function main() {
     }
   }
 
-  // ── 5 cancelled tasks ─────────────────────────────────────────────────────
+  // ── Step 3: 5 cancelled tasks ─────────────────────────────────────────────
   console.log(`\n── Step 3: ${CANCEL_TASKS} Cancelled Tasks (create→cancel) ──`);
 
   for (let i = 1; i <= CANCEL_TASKS; i++) {
     console.log(`\n  [Cancel ${i}/${CANCEL_TASKS}]`);
 
-    const createReceipt2 = await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "createTask",
-        args: [REWARD, deadline(), `ipfs://QmPlaceholderCancel${i}`],
-      }),
+    const createReceipt2 = await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "createTask",
+        args: [REWARD, deadline(), `ipfs://QmCeloTasksCancel${i}`] },
       `createTask (cancel) #${i}`
-    );
+    ), `createTask (cancel) #${i}`);
+
     const taskId = taskIdFromReceipt(createReceipt2);
     console.log(`       taskId=${taskId}`);
 
-    await tx(
-      await sendTx(creatorW, {
-        address: CELOTASKS, abi: TASKS_ABI, functionName: "cancelTask",
-        args: [taskId],
-      }),
+    await retry(() => sendTx(
+      creatorW,
+      { address: CELOTASKS, abi: TASKS_ABI, functionName: "cancelTask",
+        args: [taskId] },
       `cancelTask taskId=${taskId}`
-    );
+    ), `cancelTask taskId=${taskId}`);
   }
 
   // ── Final reads ───────────────────────────────────────────────────────────
@@ -284,28 +306,16 @@ async function main() {
 
   console.log("\n" + "=".repeat(60));
   console.log(`✅ DONE — Total interactions: ${n}`);
-  console.log(`🔍 Verify on celoscan: https://celoscan.io/address/${CELOTASKS}`);
+  console.log(`🔍 Verify: https://celoscan.io/address/${CELOTASKS}`);
   console.log("=".repeat(60));
 }
 
 main().catch((err) => {
   console.error("\n❌ Error:", err.shortMessage || err.message);
+  console.error(err);
   process.exit(1);
 });
 
-// retry: attempt fn up to 3 times on failure
-async function retry(fn, label, attempts = 3) {
-  for (let i = 1; i <= attempts; i++) {
-    try { return await fn(); }
-    catch (e) {
-      if (i === attempts) throw e;
-      console.log(`  ⚠ Retry ${i}/${attempts} for ${label}: ${e.shortMessage || e.message}`);
-      await new Promise(r => setTimeout(r, 2000 * i));
-    }
-  }
-}
-
-// Summary logged at process exit
-process.on('exit', () => {
+process.on("exit", () => {
   console.log(`\nSummary: ${n} total interactions recorded.`);
 });
