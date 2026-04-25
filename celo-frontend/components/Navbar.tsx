@@ -33,7 +33,10 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchResults = searchQuery.trim().length > 1
-    ? tasks.filter((t) => `${t.title} ${t.description} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+    ? tasks.filter((t) =>
+        t.status === "open" &&
+        `${t.title} ${t.description} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5)
     : [];
 
   const searchRef = useRef<HTMLDivElement>(null);
