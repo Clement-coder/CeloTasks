@@ -294,3 +294,8 @@ async function retry(fn, label, attempts = 3) {
     }
   }
 }
+
+// Summary logged at process exit
+process.on('exit', () => {
+  console.log(`\nSummary: ${n} total interactions recorded.`);
+});
