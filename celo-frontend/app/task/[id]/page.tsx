@@ -294,9 +294,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <div key={app.applicant} className="rounded-2xl p-4 border border-white/[0.08] flex flex-col gap-2" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-white font-mono text-xs">{app.applicant}</p>
                     {app.note && <p className="text-slate-400 text-sm">{app.note}</p>}
-                    <button onClick={async () => { await selectApplicant(task.id, app.applicant); addToast("Worker selected!", "success"); }}
-                      className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer self-start">
-                      Select Worker
+                    <button onClick={async () => {
+                      await runAction(() => selectApplicant(task.id, app.applicant), "Worker selected!", `select-${app.applicant}`);
+                    }}
+                      disabled={actionLoading === `select-${app.applicant}`}
+                      className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer self-start disabled:opacity-60">
+                      {actionLoading === `select-${app.applicant}` ? "Selecting…" : "Select Worker"}
                     </button>
                   </div>
                 ))}
