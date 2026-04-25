@@ -248,7 +248,7 @@ async function main() {
     const createReceipt2 = await tx(
       await sendTx(creatorW, {
         address: CELOTASKS, abi: TASKS_ABI, functionName: "createTask",
-        args: [REWARD, deadline(), `ipfs://QmCancelScript${i}`],
+        args: [REWARD, deadline(), `ipfs://QmPlaceholderCancel${i}`],
       }),
       `createTask (cancel) #${i}`
     );
