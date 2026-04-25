@@ -186,7 +186,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={login} /* opens Privy modal */
+                onClick={login}
                 disabled={!ready}
                 aria-label="Connect your wallet" title="Connect your wallet to get started" className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer disabled:opacity-50"
               >
