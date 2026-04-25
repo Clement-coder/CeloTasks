@@ -106,9 +106,11 @@ const CUSD_ABI = [
 const creator  = privateKeyToAccount(CREATOR_KEY);
 const worker   = privateKeyToAccount(WORKER_KEY);
 
-const pub      = createPublicClient({ chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
-const creatorW = createWalletClient({ account: creator, chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
-const workerW  = createWalletClient({ account: worker,  chain: celo, transport: http("https://forno.celo.org", { timeout: 30_000 }) });
+const RPC = http("https://forno.celo.org", { timeout: 30_000, retryCount: 3, retryDelay: 1500 });
+
+const pub      = createPublicClient({ chain: celo, transport: RPC });
+const creatorW = createWalletClient({ account: creator, chain: celo, transport: RPC });
+const workerW  = createWalletClient({ account: worker,  chain: celo, transport: RPC });
 
 // ── Nonce management ──────────────────────────────────────────────────────────
 // Fetch nonce from chain at start of each address's first tx, then increment locally.
@@ -213,11 +215,13 @@ async function main() {
   if (workerCelo < MIN_WORKER_CELO) {
     const topUp = MIN_WORKER_CELO - workerCelo;
     console.log(`\n⛽ Worker CELO low (${formatUnits(workerCelo, 18)}). Topping up ${formatUnits(topUp, 18)} CELO from creator...`);
-    const nonce = await getNonce(creator.address);
-    const hash = await creatorW.sendTransaction({ to: worker.address, value: topUp, nonce });
-    await sleep(TX_DELAY_MS);
-    await pub.waitForTransactionReceipt({ hash, timeout: 60_000 });
-    console.log(`[${++n}] WRITE CELO top-up → success | https://celoscan.io/tx/${hash}`);
+    await retry(async () => {
+      const nonce = await getNonce(creator.address);
+      const hash = await creatorW.sendTransaction({ to: worker.address, value: topUp, nonce });
+      await sleep(TX_DELAY_MS);
+      await pub.waitForTransactionReceipt({ hash, timeout: 120_000, pollingInterval: 2_000 });
+      console.log(`[${++n}] WRITE CELO top-up → success | https://celoscan.io/tx/${hash}`);
+    }, "CELO top-up");
   }
 
   // ── Step 1: Approve cUSD ──────────────────────────────────────────────────
