@@ -629,7 +629,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const earnings    = myAcceptedTasks.filter((t) => t.status === "paid").reduce((s, t) => s + Number(t.reward), 0);
   const spend       = myCreatedTasks.filter((t) => t.status === "paid").reduce((s, t) => s + Number(t.reward), 0);
   const resolved    = myAcceptedTasks.filter((t) => t.status === "paid");
-  const successRate = myAcceptedTasks.length ? Math.round((resolved.length / myAcceptedTasks.length) * 100) : 100;
+  const successRate = myAcceptedTasks.length ? Math.round((resolved.length / myAcceptedTasks.length) * 100) : 0;
 
   const stats = {
     openTasks:       tasks.filter((t) => t.status === "open").length,
