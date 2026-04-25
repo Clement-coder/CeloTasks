@@ -504,7 +504,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       paid_at: new Date().toISOString(),
       tx_hash: receipt.transactionHash,
     }).eq("id", id);
-    if (error) throw error;
+    if (error) {
+      // Payment was released onchain — log the error but don't throw so the UI reflects success
+      console.error("[releasePayment] DB update failed after successful onchain tx:", error);
+    }
     await appendActivity(id, task.title, "paid", currentUser, `Released ${task.reward} ${task.currency} to the worker.`);
   }, [tasks, currentUser, walletClient, publicClient]);
 
