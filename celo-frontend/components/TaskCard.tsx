@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { IconArrowRight, IconCheck, IconClock, IconCoin, IconZap } from "@/components/Icons";
 import { type Task, type TaskStatus } from "@/lib/taskStore";
 
@@ -40,10 +41,10 @@ function timeAgo(dateStr: string) {
 }
 
 /** Returns time-remaining label based on acceptedAt + durationHours */
-function dueLabel(task: Task): { text: string; urgent: boolean } | null {
+function dueLabel(task: Task, now: number): { text: string; urgent: boolean } | null {
   if (!task.acceptedAt || task.status === "paid" || task.status === "cancelled") return null;
   const dueMs = new Date(task.acceptedAt).getTime() + Number(task.durationHours) * 3600000;
-  const diffMs = dueMs - Date.now();
+  const diffMs = dueMs - now;
   const diffH = Math.ceil(diffMs / 3600000);
   if (diffMs < 0) return { text: "Overdue", urgent: true };
   if (diffH <= 1) return { text: "< 1h left", urgent: true };
@@ -52,7 +53,12 @@ function dueLabel(task: Task): { text: string; urgent: boolean } | null {
 }
 
 export default function TaskCard({ task, onAccept, primaryAction, loading }: TaskCardProps) {
-  const due = dueLabel(task);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const due = dueLabel(task, now);
 
   return (
     <div className="glass-card rounded-3xl p-5 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
