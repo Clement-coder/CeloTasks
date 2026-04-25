@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState, useCallback, useEffect, useRef } from "react";
+import { use, useState, useCallback, useEffect } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ToastContainer from "@/components/ToastContainer";
 import { useToast } from "@/hooks/useToast";
@@ -43,7 +43,7 @@ const STATUS_LABELS = {
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { getTask, currentUser, loading: storeLoading, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
+  const { getTask, currentUser, loading: storeLoading, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
   const { login, authenticated } = usePrivy();
   const { address } = useAccount();
   const { balance: cusdBalance } = useCUSDBalance(address);
@@ -75,6 +75,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     return () => clearInterval(id);
   }, []);
   const hasApplied = task?.applications?.some((a) => a.applicant === currentUser);
+
+  // Must be declared before any early returns — Rules of Hooks
+  const runAction = useCallback(async (fn: () => Promise<void>, message: string, actionKey?: string) => {
+    if (actionKey) setActionLoading(actionKey); else setLoading(true);
+    try {
+      await fn();
+      addToast(message, "success");
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : "Something went wrong. Please try again.", "error");
+    } finally {
+      if (actionKey) setActionLoading(null); else setLoading(false);
+    }
+  }, [addToast]);
 
   // Fetch the payment tx hash from onchain_payments (not the create tx)
   useEffect(() => {
@@ -113,18 +126,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   const isCreator = task.creator === currentUser;
   const isWorker = task.acceptor === currentUser;
-
-  const runAction = useCallback(async (fn: () => Promise<void>, message: string, actionKey?: string) => {
-    if (actionKey) setActionLoading(actionKey); else setLoading(true);
-    try {
-      await fn();
-      addToast(message, "success");
-    } catch (e: unknown) {
-      addToast(e instanceof Error ? e.message : "Something went wrong. Please try again.", "error");
-    } finally {
-      if (actionKey) setActionLoading(null); else setLoading(false);
-    }
-  }, [addToast]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-5 sm:gap-6">
