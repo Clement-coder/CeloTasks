@@ -476,7 +476,6 @@ export default function AdminPage() {
                       <span className="text-teal-400 font-semibold">{task.reward} {task.currency}</span>
                       {" · "}{task.category}{" · "}{task.difficulty}{" · "}{task.durationHours}h to complete
                     </p>
-                    </p>
                     <p className="text-[10px] text-slate-600 font-mono truncate">Creator: {task.creator}</p>
                   </div>
                   <div className="flex gap-1.5 shrink-0">
