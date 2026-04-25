@@ -162,7 +162,7 @@ function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], s
     difficulty:      row.difficulty as TaskDifficulty,
     creator:         row.creator_wallet as string,
     acceptor:        (row.acceptor_wallet as string) ?? undefined,
-    createdAt:       (row.created_at as string).slice(0, 10),
+    createdAt:       row.created_at ? (row.created_at as string).slice(0, 10) : "",
     acceptedAt:      (row.accepted_at as string) ?? undefined,
     durationHours:   String(row.duration_hours ?? row.estimated_hours ?? ""),
     deliverables:    (row.deliverables as string[]) ?? [],
