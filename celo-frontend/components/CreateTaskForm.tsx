@@ -19,14 +19,15 @@ interface Props { onSuccess?: (id: string) => void; }
 
 type FormState = {
   title: string; category: TaskCategory; difficulty: TaskDifficulty;
-  reward: string; currency: TaskCurrency; deadline: string;
-  estimatedHours: string; description: string; deliverables: string;
+  reward: string; currency: TaskCurrency;
+  durationHours: string;
+  description: string; deliverables: string;
   submissionGuide: string; tags: string;
 };
 
 const INITIAL_FORM: FormState = {
   title: "", category: "Writing", difficulty: "Quick", reward: "",
-  currency: "cUSD", deadline: "", estimatedHours: "", description: "",
+  currency: "cUSD", durationHours: "", description: "",
   deliverables: "", submissionGuide: "", tags: "",
 };
 
@@ -65,9 +66,8 @@ export default function CreateTaskForm({ onSuccess }: Props) {
     if (form.currency === "cUSD" && cusdBalance !== null && Number(form.reward) > Number(cusdBalance)) {
       errs.reward = `Insufficient cUSD balance (you have ${cusdBalance} cUSD)`;
     }
-    if (!form.deadline) errs.deadline = "Deadline is required";
-    else if (form.deadline < new Date().toISOString().slice(0, 10)) errs.deadline = "Must be today or future";
-    if (!form.estimatedHours || Number(form.estimatedHours) <= 0) errs.estimatedHours = "Required";
+    if (form.currency === "CELO") errs.reward = "Only cUSD is supported for onchain escrow. Please select cUSD.";
+    if (!form.durationHours || Number(form.durationHours) <= 0) errs.durationHours = "Required — how many hours does the worker have?";
     if (deliverables.length === 0) errs.deliverables = "Add at least one deliverable";
     if (!form.submissionGuide.trim()) errs.submissionGuide = "Required";
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
@@ -77,8 +77,8 @@ export default function CreateTaskForm({ onSuccess }: Props) {
       const id = await createTask({
         title: form.title.trim(), description: form.description.trim(),
         reward: form.reward, currency: form.currency, category: form.category,
-        difficulty: form.difficulty, deadline: form.deadline,
-        estimatedHours: form.estimatedHours, deliverables, submissionGuide: form.submissionGuide.trim(), tags,
+        difficulty: form.difficulty, durationHours: form.durationHours,
+        deliverables, submissionGuide: form.submissionGuide.trim(), tags,
       });
       setForm(INITIAL_FORM);
       onSuccess?.(id);
@@ -93,7 +93,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
         <div>
           <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-2">Create Task</p>
           <h1 className="text-2xl sm:text-4xl font-bold text-white leading-tight">Brief the work clearly, then publish.</h1>
-          <p className="text-slate-400 mt-2 text-sm">Set a reward, deadline, and clear deliverables. Workers apply and you select who works on it.</p>
+          <p className="text-slate-400 mt-2 text-sm">Set a reward, completion window, and clear deliverables. Workers apply and you select who works on it.</p>
         </div>
 
         {errors.submit && (
@@ -154,25 +154,17 @@ export default function CreateTaskForm({ onSuccess }: Props) {
             </div>
             <p className="text-red-400 text-xs mt-1.5">{errors.reward}</p>
             {form.currency === "CELO" && (
-              <p className="text-amber-400 text-xs mt-1.5">⚠️ CELO payments are off-chain only — the smart contract escrow uses cUSD.</p>
+              <p className="text-red-400 text-xs mt-1.5">⚠️ Only cUSD is supported for onchain escrow. Please select cUSD.</p>
             )}
           </div>
 
-          {/* Effort */}
-          <div>
-            <Label icon={<IconClock className="w-3.5 h-3.5" />} text="Effort Estimate (hours)" />
+          {/* Duration */}
+          <div className="md:col-span-2">
+            <Label icon={<IconClock className="w-3.5 h-3.5" />} text="Completion Time (hours after accepting)" />
             <input className={fieldCls} style={fieldStyle} type="number" min="1"
-              value={form.estimatedHours} onChange={(e) => set("estimatedHours", e.target.value)} placeholder="e.g. 4" />
-            <p className="text-red-400 text-xs mt-1.5">{errors.estimatedHours}</p>
-          </div>
-
-          {/* Deadline */}
-          <div>
-            <Label icon={<IconClock className="w-3.5 h-3.5" />} text="Deadline" />
-            <input className={fieldCls} style={fieldStyle} type="date"
-              min={new Date().toISOString().slice(0, 10)}
-              value={form.deadline} onChange={(e) => set("deadline", e.target.value)} />
-            <p className="text-red-400 text-xs mt-1.5">{errors.deadline}</p>
+              value={form.durationHours} onChange={(e) => set("durationHours", e.target.value)} placeholder="e.g. 24 — worker has 24 hours from when they accept" />
+            <p className="text-slate-500 text-xs mt-1.5">The clock starts when a worker accepts the task. No fixed calendar deadline.</p>
+            <p className="text-red-400 text-xs mt-0.5">{errors.durationHours}</p>
           </div>
 
           {/* Tags */}
@@ -232,7 +224,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
         <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
           <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Reward</p>
           <p className="gradient-text text-3xl font-bold">{form.reward || "0"} <span className="text-base">{form.currency}</span></p>
-          <p className="text-slate-500 text-xs mt-2">{form.category} · {form.difficulty} · {form.estimatedHours || "0"}h</p>
+          <p className="text-slate-500 text-xs mt-2">{form.category} · {form.difficulty} · {form.durationHours || "0"}h to complete</p>
         </div>
         <div>
           <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Description</p>

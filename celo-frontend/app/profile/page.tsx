@@ -348,11 +348,9 @@ export default function ProfilePage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-mono text-xs truncate">{p.tx_hash}</p>
                   <p className="text-slate-500 text-xs mt-0.5">
-                    {p.to_address === address?.toLowerCase() ? "Received" : "Sent"} · {new Date(p.confirmed_at).toLocaleDateString()}
-                  </p>
+                    {p.to_address === address?.toLowerCase() ? "Received" : "Sent"} · {new Date(p.confirmed_at).toLocaleDateString()}                  </p>
                 </div>
-                <span className={`font-bold text-sm shrink-0 ${p.to_address === address?.toLowerCase() ? "text-teal-400" : "text-fuchsia-400"}`}>
-                  {p.to_address === address?.toLowerCase() ? "+" : "-"}{p.amount_cusd} cUSD
+                <span className={`font-bold text-sm shrink-0 ${p.to_address === address?.toLowerCase() ? "text-teal-400" : "text-fuchsia-400"}`}>                  {p.to_address === address?.toLowerCase() ? "+" : "-"}{p.amount_cusd} cUSD
                 </span>
               </a>
             ))}

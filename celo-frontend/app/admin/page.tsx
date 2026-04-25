@@ -25,13 +25,13 @@ interface AdminUser {
 
 type AdminTab = "overview" | "users" | "tasks" | "activity";
 
-const STATUS_COLOR: Record<string, { text: string; bg: string; border: string }> = {
-  open:        { text: "text-teal-400",    bg: "rgba(20,184,166,0.1)",   border: "rgba(20,184,166,0.25)" },
-  in_progress: { text: "text-amber-300",   bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.25)" },
-  submitted:   { text: "text-sky-300",     bg: "rgba(56,189,248,0.1)",   border: "rgba(56,189,248,0.25)" },
-  approved:    { text: "text-green-300",   bg: "rgba(34,197,94,0.1)",    border: "rgba(34,197,94,0.25)" },
-  paid:        { text: "text-fuchsia-300", bg: "rgba(217,70,239,0.1)",   border: "rgba(217,70,239,0.25)" },
-  cancelled:   { text: "text-red-400",     bg: "rgba(248,113,113,0.1)",  border: "rgba(248,113,113,0.25)" },
+const STATUS_COLOR: Record<string, { color: string; bg: string; border: string }> = {
+  open:        { color: "#2dd4bf",  bg: "rgba(20,184,166,0.1)",   border: "rgba(20,184,166,0.25)" },
+  in_progress: { color: "#fcd34d",  bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.25)" },
+  submitted:   { color: "#7dd3fc",  bg: "rgba(56,189,248,0.1)",   border: "rgba(56,189,248,0.25)" },
+  approved:    { color: "#86efac",  bg: "rgba(34,197,94,0.1)",    border: "rgba(34,197,94,0.25)" },
+  paid:        { color: "#e879f9",  bg: "rgba(217,70,239,0.1)",   border: "rgba(217,70,239,0.25)" },
+  cancelled:   { color: "#f87171",  bg: "rgba(248,113,113,0.1)",  border: "rgba(248,113,113,0.25)" },
 };
 
 function Stat({ icon: Icon, label, value, desc, color, bg, border }: {
@@ -173,7 +173,7 @@ function UserDrawer({ user, tasks, onClose, onRoleChange, onBan, loading }: {
                         </p>
                       </div>
                       <span className="text-[10px] px-2 py-0.5 rounded-full shrink-0 font-medium"
-                        style={{ color: sc.text.replace("text-", ""), background: sc.bg, border: `1px solid ${sc.border}` }}>
+                        style={{ color: sc.color, background: sc.bg, border: `1px solid ${sc.border}` }}>
                         {t.status.replace("_", " ")}
                       </span>
                     </Link>
@@ -245,8 +245,7 @@ export default function AdminPage() {
 
   async function banUser(wallet: string) {
     setActionLoading(wallet);
-    // Suspend = demote to user + flag (extend with a banned column if needed)
-    const { error } = await getSupabase().from("profiles").update({ role: "user" }).eq("wallet", wallet);
+    const { error } = await getSupabase().from("profiles").update({ role: "user", banned: true }).eq("wallet", wallet);
     if (error) addToast("Failed to suspend account", "error");
     else { addToast("Account suspended", "success"); await fetchUsers(); setSelectedUser(null); }
     setActionLoading(null);
@@ -264,7 +263,7 @@ export default function AdminPage() {
     setActionLoading(id);
     const { error } = await getSupabase().from("tasks").delete().eq("id", id);
     if (error) addToast("Failed to delete task", "error");
-    else addToast("Task deleted", "success");
+    else { addToast("Task deleted", "success"); await fetchUsers(); }
     setActionLoading(null);
   }
 
@@ -469,13 +468,14 @@ export default function AdminPage() {
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
                       <p className="text-white text-xs sm:text-sm font-medium truncate">{task.title}</p>
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0"
-                        style={{ color: sc.text.replace("text-",""), background: sc.bg, border: `1px solid ${sc.border}` }}>
+                        style={{ color: sc.color, background: sc.bg, border: `1px solid ${sc.border}` }}>
                         {task.status.replace("_", " ")}
                       </span>
                     </div>
                     <p className="text-[10px] sm:text-xs text-slate-500">
                       <span className="text-teal-400 font-semibold">{task.reward} {task.currency}</span>
-                      {" · "}{task.category}{" · "}{task.difficulty}{" · "}deadline {task.deadline}
+                      {" · "}{task.category}{" · "}{task.difficulty}{" · "}{task.durationHours}h to complete
+                    </p>
                     </p>
                     <p className="text-[10px] text-slate-600 font-mono truncate">Creator: {task.creator}</p>
                   </div>

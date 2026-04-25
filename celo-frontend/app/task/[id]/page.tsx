@@ -52,7 +52,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editReward, setEditReward] = useState("");
-  const [editDeadline, setEditDeadline] = useState("");
+  const [editDurationHours, setEditDurationHours] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editDeliverables, setEditDeliverables] = useState("");
   const [editGuide, setEditGuide] = useState("");
@@ -162,19 +162,23 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-white font-mono text-xs break-all">{task.creator}</p>
             </div>
             <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Deadline</p>
-              <p className="text-white">{task.deadline}</p>
-              {task.status !== "paid" && task.status !== "cancelled" && (() => {
-                const diff = new Date(`${task.deadline}T00:00:00`).getTime() - Date.now();
-                const days = Math.ceil(diff / 86400000);
-                const label = days < 0 ? "Overdue" : days === 0 ? "Due today" : `${days}d left`;
-                const urgent = days <= 3;
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Completion Window</p>
+              <p className="text-white">{task.durationHours}h after accepting</p>
+              {task.acceptedAt && task.status !== "paid" && task.status !== "cancelled" && (() => {
+                const dueMs = new Date(task.acceptedAt).getTime() + Number(task.durationHours) * 3600000;
+                const diffMs = dueMs - Date.now();
+                const diffH = Math.ceil(diffMs / 3600000);
+                const label = diffMs < 0 ? "Overdue" : diffH < 1 ? "< 1h left" : `${diffH}h left`;
+                const urgent = diffMs < 3 * 3600000;
                 return <p className={`text-xs mt-1 font-semibold ${urgent ? "text-red-400" : "text-slate-500"}`}>{label}</p>;
               })()}
+              {!task.acceptedAt && task.status === "open" && (
+                <p className="text-slate-600 text-xs mt-1">Starts when accepted</p>
+              )}
             </div>
             <div className="rounded-2xl p-4 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Effort</p>
-              <p className="text-white">{task.estimatedHours} hours</p>
+              <p className="text-white">{task.durationHours} hours</p>
             </div>
           </div>
 
@@ -441,7 +445,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             )}
 
             {isCreator && task.status === "open" && !editing && (
-              <button onClick={() => { setEditing(true); setEditTitle(task.title); setEditReward(task.reward); setEditDeadline(task.deadline); setEditDesc(task.description); setEditDeliverables(task.deliverables.join("\n")); setEditGuide(task.submissionGuide); setEditTags(task.tags.join(", ")); }}
+              <button onClick={() => { setEditing(true); setEditTitle(task.title); setEditReward(task.reward); setEditDurationHours(task.durationHours); setEditDesc(task.description); setEditDeliverables(task.deliverables.join("\n")); setEditGuide(task.submissionGuide); setEditTags(task.tags.join(", ")); }}
                 className="outline-btn text-slate-300 font-semibold px-5 py-3 rounded-2xl cursor-pointer text-sm">
                 Edit Task
               </button>
@@ -459,7 +463,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <input value={editReward} onChange={(e) => setEditReward(e.target.value)} placeholder="Reward" type="number"
                     className="flex-1 px-4 py-3 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-                  <input value={editDeadline} onChange={(e) => setEditDeadline(e.target.value)} type="date"
+                  <input value={editDurationHours} onChange={(e) => setEditDurationHours(e.target.value)} type="number" min="1" placeholder="Hours to complete"
                     className="flex-1 px-4 py-3 rounded-2xl text-white text-sm focus:outline-none"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 </div>
@@ -475,7 +479,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="flex gap-2">
                   <button onClick={async () => {
                     await editTask(task.id, {
-                      title: editTitle, description: editDesc, reward: editReward, deadline: editDeadline,
+                      title: editTitle, description: editDesc, reward: editReward, durationHours: editDurationHours,
                       deliverables: editDeliverables.split("\n").map((s) => s.trim()).filter(Boolean),
                       submissionGuide: editGuide,
                       tags: editTags.split(",").map((s) => s.trim()).filter(Boolean),

@@ -55,8 +55,10 @@ export interface Task {
   creator: string;
   acceptor?: string;
   createdAt: string;
-  deadline: string;
-  estimatedHours: string;
+  /** ISO timestamp when a worker was assigned — delivery window starts here */
+  acceptedAt?: string;
+  /** Hours the worker has to complete the task after accepting */
+  durationHours: string;
   deliverables: string[];
   submissionGuide: string;
   tags: string[];
@@ -67,9 +69,9 @@ export interface Task {
   applications?: TaskApplication[];
   revisionCount: number;
   // ── Onchain fields ────────────────────────────────────────────────────────
-  chainTaskId?: string;       // uint256 taskId from CeloTasks contract
-  txHash?: string;            // tx hash of createTask() call
-  contractAddress?: string;   // CeloTasks contract address
+  chainTaskId?: string;
+  txHash?: string;
+  contractAddress?: string;
 }
 
 export interface ActivityItem {
@@ -89,8 +91,8 @@ export interface CreateTaskInput {
   currency: TaskCurrency;
   category: TaskCategory;
   difficulty: TaskDifficulty;
-  deadline: string;
-  estimatedHours: string;
+  /** Hours the worker has to complete after accepting */
+  durationHours: string;
   deliverables: string[];
   submissionGuide: string;
   tags: string[];
@@ -122,7 +124,7 @@ interface TaskStore {
   approveTask: (id: string) => Promise<void>;
   releasePayment: (id: string) => Promise<void>;
   cancelTask: (id: string) => Promise<void>;
-  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>) => Promise<void>;
+  editTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "durationHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>) => Promise<void>;
   applyToTask: (id: string, note: string) => Promise<void>;
   selectApplicant: (taskId: string, applicant: string) => Promise<void>;
   claimAfterTimeout: (id: string) => Promise<void>;
@@ -161,8 +163,8 @@ function rowToTask(row: Record<string, unknown>, apps: TaskApplication[] = [], s
     creator:         row.creator_wallet as string,
     acceptor:        (row.acceptor_wallet as string) ?? undefined,
     createdAt:       (row.created_at as string).slice(0, 10),
-    deadline:        row.deadline as string,
-    estimatedHours:  String(row.estimated_hours ?? ""),
+    acceptedAt:      (row.accepted_at as string) ?? undefined,
+    durationHours:   String(row.duration_hours ?? row.estimated_hours ?? ""),
     deliverables:    (row.deliverables as string[]) ?? [],
     submissionGuide: row.submission_guide as string,
     tags:            (row.tags as string[]) ?? [],
@@ -315,8 +317,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       category:         input.category,
       difficulty:       input.difficulty,
       creator_wallet:   currentUser,
-      deadline:         input.deadline,
-      estimated_hours:  Number(input.estimatedHours),
+      duration_hours:   Number(input.durationHours),
       deliverables:     input.deliverables,
       submission_guide: input.submissionGuide,
       tags:             input.tags,
@@ -329,7 +330,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (walletClient && publicClient) {
       try {
         const rewardWei = parseEther(input.reward);
-        const deadlineUnix = Math.floor(new Date(input.deadline).getTime() / 1000);
+        // deadline on contract = now + durationHours
+        const deadlineUnix = Math.floor(Date.now() / 1000) + Number(input.durationHours) * 3600;
 
         // approve cUSD
         const approveTx = await walletClient.writeContract({
@@ -382,11 +384,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     if (!myAddress) throw new Error("Connect your wallet before accepting a task.");
+    if (task.creator === currentUser) throw new Error("You cannot accept your own task.");
     await ensureProfile(currentUser);
-    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser }).eq("id", id);
+    const now = new Date().toISOString();
+    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: currentUser, accepted_at: now }).eq("id", id);
     if (error) throw error;
-    // NOTE: assignWorker is onlyCreator on the contract — workers cannot call it directly.
-    // The creator calls assignWorker via selectApplicant. Direct accept is off-chain only.
     await appendActivity(id, task.title, "accepted", currentUser, "Accepted the task and started work.");
   }, [tasks, currentUser, myAddress]);
 
@@ -470,7 +472,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-
+    if (task.creator !== currentUser) throw new Error("Only the task creator can release payment.");
     if (!task.chainTaskId) throw new Error("No onchain task ID — payment cannot be released without a contract record.");
     if (!walletClient || !publicClient) throw new Error("Connect your wallet to release payment.");
 
@@ -524,14 +526,13 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     await appendActivity(id, task.title, "cancelled", currentUser, "Task cancelled by creator.");
   }, [tasks, currentUser, walletClient, publicClient]);
 
-  const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "deadline" | "estimatedHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>): Promise<void> => {
+  const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "durationHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>): Promise<void> => {
     const db = getSupabase();
     const patch: Record<string, unknown> = {};
     if (updates.title !== undefined)           patch.title            = updates.title;
     if (updates.description !== undefined)     patch.description      = updates.description;
     if (updates.reward !== undefined)          patch.reward           = Number(updates.reward);
-    if (updates.deadline !== undefined)        patch.deadline         = updates.deadline;
-    if (updates.estimatedHours !== undefined)  patch.estimated_hours  = Number(updates.estimatedHours);
+    if (updates.durationHours !== undefined)   patch.duration_hours   = Number(updates.durationHours);
     if (updates.submissionGuide !== undefined) patch.submission_guide = updates.submissionGuide;
     if (updates.tags !== undefined)            patch.tags             = updates.tags;
     if (updates.deliverables !== undefined)    patch.deliverables     = updates.deliverables;
@@ -556,7 +557,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
-    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant }).eq("id", taskId);
+    const now = new Date().toISOString();
+    const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant, accepted_at: now }).eq("id", taskId);
     if (error) throw error;
 
     // call contract if task has a chain_task_id

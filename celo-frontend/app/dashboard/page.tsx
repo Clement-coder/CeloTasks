@@ -8,7 +8,7 @@ import BrowseTasks from "@/components/BrowseTasks";
 import MyTasks from "@/components/MyTasks";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
-import { IconArrowRight, IconCheck, IconCoin, IconLock, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
+import { IconArrowRight, IconCoin, IconLock, IconPlus, IconStar, IconTrendingUp, IconWallet } from "@/components/Icons";
 import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import { useTaskStore } from "@/lib/taskStore";
 
@@ -138,7 +138,7 @@ export default function DashboardPage() {
         <Link href="/create-task" className="glass-card rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors">
           <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5">Creator Flow</p>
           <h3 className="text-white text-base sm:text-xl font-semibold">Post a structured task brief</h3>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1.5">Set reward, deadline, deliverables, and review instructions.</p>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1.5">Set reward, duration, deliverables, and review instructions.</p>
           <span className="text-teal-300 text-xs sm:text-sm mt-3 inline-flex items-center gap-1.5">Open composer <IconArrowRight className="w-3.5 h-3.5" /></span>
         </Link>
         <Link href="/activity" className="glass-card rounded-2xl p-4 sm:p-5 hover:border-white/20 transition-colors">

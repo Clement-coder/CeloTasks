@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
-import { IconPlus, IconSearch, IconTrendingUp, IconStar, IconCoin, IconClock } from "@/components/Icons";
+import { IconPlus, IconSearch, IconStar, IconCoin } from "@/components/Icons";
 import { TASK_CATEGORIES, TASK_DIFFICULTIES, useTaskStore } from "@/lib/taskStore";
 import { usePrivy } from "@privy-io/react-auth";
 import { type ToastType } from "@/hooks/useToast";
@@ -15,14 +15,15 @@ interface Props {
 }
 
 const SORT_OPTIONS = [
-  { value: "Newest",        label: "Newest first",      icon: IconClock },
-  { value: "Reward ↑",      label: "Reward: Low → High", icon: IconCoin },
-  { value: "Reward ↓",      label: "Reward: High → Low", icon: IconCoin },
-  { value: "Deadline Soon", label: "Deadline: Soonest",  icon: IconTrendingUp },
+  { value: "Newest",       label: "Newest first" },
+  { value: "Reward ↑",     label: "Reward: Low → High" },
+  { value: "Reward ↓",     label: "Reward: High → Low" },
+  { value: "Duration ↑",   label: "Duration: Shortest" },
+  { value: "Duration ↓",   label: "Duration: Longest" },
 ];
 
 export default function BrowseTasks({ onToast }: Props) {
-  const { browseTasks, acceptTask } = useTaskStore();
+  const { browseTasks, acceptTask, loading: storeLoading } = useTaskStore();
   const { authenticated, login } = usePrivy();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
@@ -32,15 +33,9 @@ export default function BrowseTasks({ onToast }: Props) {
   const [minReward, setMinReward] = useState("");
   const [maxReward, setMaxReward] = useState("");
   const [sort, setSort] = useState("Newest");
-  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const PAGE_SIZE = 6;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const filtered = useMemo(() => {
     let items = browseTasks.filter((task) => {
@@ -55,7 +50,8 @@ export default function BrowseTasks({ onToast }: Props) {
 
     if (sort === "Reward ↑") items = [...items].sort((a, b) => Number(a.reward) - Number(b.reward));
     if (sort === "Reward ↓") items = [...items].sort((a, b) => Number(b.reward) - Number(a.reward));
-    if (sort === "Deadline Soon") items = [...items].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    if (sort === "Duration ↑") items = [...items].sort((a, b) => Number(a.durationHours) - Number(b.durationHours));
+    if (sort === "Duration ↓") items = [...items].sort((a, b) => Number(b.durationHours) - Number(a.durationHours));
     if (sort === "Newest") items = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return items;
   }, [browseTasks, category, difficulty, search, sort, minReward, maxReward]);
@@ -81,8 +77,7 @@ export default function BrowseTasks({ onToast }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="glass-card rounded-3xl p-4 sm:p-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="glass-card rounded-3xl p-4 sm:p-6 flex flex-col gap-4">        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold mb-1">Discover Work</p>
             <h2 className="text-base sm:text-2xl font-bold text-white">Open tasks ready for pickup</h2>
@@ -159,7 +154,7 @@ export default function BrowseTasks({ onToast }: Props) {
         </div>
       </div>
 
-      {isLoading ? (
+      {storeLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <TaskSkeleton key={index} />
@@ -195,7 +190,7 @@ export default function BrowseTasks({ onToast }: Props) {
       <ConfirmDialog
         open={!!pendingAcceptId}
         title="Accept this task?"
-        message="You'll be committed to completing this task. Make sure you can deliver before the deadline."
+        message="You'll be committed to completing this task within the time window. Make sure you can deliver before the timer runs out."
         confirmLabel="Accept Task"
         onCancel={() => setPendingAcceptId(null)}
         onConfirm={() => pendingAcceptId && handleAccept(pendingAcceptId)}

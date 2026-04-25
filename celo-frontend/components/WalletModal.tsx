@@ -55,7 +55,8 @@ export default function WalletModal({ open, onClose }: Props) {
   }
 
   async function handleFund() {
-    if (!address) return;
+    if (!address) { setTxError("Connect your wallet first."); return; }
+    setTxError("");
     await fundWallet({ address, options: { chain: celo } });
   }
 

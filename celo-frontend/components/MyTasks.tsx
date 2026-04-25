@@ -18,6 +18,7 @@ const STATUS_FILTERS: { label: string; value: TaskStatus | "all" }[] = [
   { label: "Needs Review", value: "submitted" },
   { label: "Approved", value: "approved" },
   { label: "Paid", value: "paid" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 export default function MyTasks({ onToast }: Props) {

@@ -20,6 +20,7 @@ const FILTERS: { label: string; value: ActivityType | "all"; icon: React.Compone
   { label: "Created",   value: "created",           icon: IconPlus },
   { label: "Accepted",  value: "accepted",          icon: IconZap },
   { label: "Submitted", value: "submitted",         icon: IconCheck },
+  { label: "Revision",  value: "revision_requested", icon: IconArrowRight },
   { label: "Approved",  value: "approved",          icon: IconCheck },
   { label: "Paid",      value: "paid",              icon: IconCoin },
   { label: "Cancelled", value: "cancelled",         icon: IconX },

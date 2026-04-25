@@ -32,7 +32,6 @@ interface TaskCardProps {
 }
 
 function timeAgo(dateStr: string) {
-  // Append T00:00:00 so it parses as local midnight, not UTC midnight
   const ms = Date.now() - new Date(dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`).getTime();
   const days = Math.floor(ms / 86400000);
   if (days <= 0) return "Today";
@@ -40,30 +39,32 @@ function timeAgo(dateStr: string) {
   return `${days}d ago`;
 }
 
-function deadlineLabel(deadlineStr: string): { text: string; urgent: boolean } {
-  const diff = new Date(`${deadlineStr}T00:00:00`).getTime() - Date.now();
-  const days = Math.ceil(diff / 86400000);
-  if (days < 0) return { text: "Overdue", urgent: true };
-  if (days === 0) return { text: "Due today", urgent: true };
-  if (days === 1) return { text: "1 day left", urgent: true };
-  if (days <= 3) return { text: `${days} days left`, urgent: true };
-  return { text: `${days} days left`, urgent: false };
+/** Returns time-remaining label based on acceptedAt + durationHours */
+function dueLabel(task: Task): { text: string; urgent: boolean } | null {
+  if (!task.acceptedAt || task.status === "paid" || task.status === "cancelled") return null;
+  const dueMs = new Date(task.acceptedAt).getTime() + Number(task.durationHours) * 3600000;
+  const diffMs = dueMs - Date.now();
+  const diffH = Math.ceil(diffMs / 3600000);
+  if (diffMs < 0) return { text: "Overdue", urgent: true };
+  if (diffH <= 1) return { text: "< 1h left", urgent: true };
+  if (diffH <= 3) return { text: `${diffH}h left`, urgent: true };
+  return { text: `${diffH}h left`, urgent: false };
 }
 
 export default function TaskCard({ task, onAccept, primaryAction, loading }: TaskCardProps) {
-  const isExpired = task.status === "open" && new Date(`${task.deadline}T23:59:59`).getTime() < Date.now();
+  const due = dueLabel(task);
 
   return (
-    <div className={`glass-card rounded-3xl p-5 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 ${isExpired ? "opacity-60" : ""}`}>
+    <div className="glass-card rounded-3xl p-5 flex flex-col gap-4 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap gap-2 mb-3">
             <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${STATUS_STYLES[task.status]}`}>
               {STATUS_LABELS[task.status]}
             </span>
-            {isExpired && (
+            {due?.urgent && (
               <span className="text-xs px-2.5 py-1 rounded-full border border-red-400/30 text-red-400 bg-red-400/10 font-medium">
-                Expired
+                {due.text}
               </span>
             )}
             <span className="text-xs px-2.5 py-1 rounded-full border border-white/[0.08] text-slate-400">
@@ -83,16 +84,13 @@ export default function TaskCard({ task, onAccept, primaryAction, loading }: Tas
 
       <div className="grid grid-cols-2 gap-3 text-xs">
         <div className="rounded-2xl p-3 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
-          <p className="text-slate-500 mb-1">Deadline</p>
-          <p className="text-white">{task.deadline}</p>
-          {task.status !== "paid" && task.status !== "cancelled" && (() => {
-            const dl = deadlineLabel(task.deadline);
-            return <p className={`mt-0.5 font-medium ${dl.urgent ? "text-red-400" : "text-slate-500"}`}>{dl.text}</p>;
-          })()}
+          <p className="text-slate-500 mb-1">Complete within</p>
+          <p className="text-white">{task.durationHours}h of accepting</p>
+          {due && !due.urgent && <p className="text-slate-500 mt-0.5">{due.text}</p>}
         </div>
         <div className="rounded-2xl p-3 border border-white/[0.08]" style={{ background: "rgba(255,255,255,0.03)" }}>
-          <p className="text-slate-500 mb-1">Effort</p>
-          <p className="text-white">{task.estimatedHours}h</p>
+          <p className="text-slate-500 mb-1">Posted</p>
+          <p className="text-white">{timeAgo(task.createdAt)}</p>
         </div>
       </div>
 
@@ -123,15 +121,9 @@ export default function TaskCard({ task, onAccept, primaryAction, loading }: Tas
               className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading ? (
-                <>
-                  <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
-                  Accepting
-                </>
+                <><span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />Accepting</>
               ) : (
-                <>
-                  <IconZap className="w-3.5 h-3.5" />
-                  Accept
-                </>
+                <><IconZap className="w-3.5 h-3.5" />Accept</>
               )}
             </button>
           )}
@@ -142,15 +134,9 @@ export default function TaskCard({ task, onAccept, primaryAction, loading }: Tas
               className="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading ? (
-                <>
-                  <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
-                  Working
-                </>
+                <><span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />Working</>
               ) : (
-                <>
-                  <IconCheck className="w-3.5 h-3.5" />
-                  {primaryAction.label}
-                </>
+                <><IconCheck className="w-3.5 h-3.5" />{primaryAction.label}</>
               )}
             </button>
           )}

@@ -35,7 +35,18 @@ export default function Navbar() {
     ? tasks.filter((t) => `${t.title} ${t.description} ${t.tags.join(" ")}`.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
     : [];
 
-  useEffect(() => { setMiniPay(isMiniPay()); }, []);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false); setSearchQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [searchOpen]);
 
   useEffect(() => {
     if (!ready) return;
@@ -72,7 +83,7 @@ export default function Navbar() {
             </button>
 
             {/* Global search — desktop */}
-            <div className="relative hidden md:block">
+            <div className="relative hidden md:block" ref={searchRef}>
               <button
                 onClick={() => setSearchOpen((v) => !v)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:text-white transition-colors text-sm"
@@ -129,7 +140,7 @@ export default function Navbar() {
                 { href: "/",            label: "Home" },
                 { href: "/dashboard",   label: "Browse", badge: urgentCount > 0 ? urgentCount : undefined },
                 { href: "/create-task", label: "Create" },
-                { href: "/activity",    label: "Activity", badge: urgentCount > 0 ? urgentCount : undefined },
+                { href: "/activity",    label: "Activity" },
                 { href: "/leaderboard", label: "Leaders" },
                 { href: "/profile",     label: "Profile" },
               ].map((item) => {

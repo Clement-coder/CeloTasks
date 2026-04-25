@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   text: string;
 }
@@ -11,7 +12,7 @@ const SYSTEM_CONTEXT = `You are CeloTasks AI assistant. CeloTasks is a decentral
 export default function AiChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Hi! I'm your CeloTasks AI assistant. Ask me anything about tasks, payments, or the platform! 🚀" },
+    { id: "init", role: "assistant", text: "Hi! I'm your CeloTasks AI assistant. Ask me anything about tasks, payments, or the platform! 🚀" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function AiChat() {
     const text = input.trim();
     if (!text || loading) return;
     setInput("");
-    const next: Message[] = [...messages, { role: "user", text }];
+    const next: Message[] = [...messages, { id: `u-${Date.now()}`, role: "user", text }];
     setMessages(next);
     setLoading(true);
 
@@ -46,9 +47,9 @@ export default function AiChat() {
         body: JSON.stringify({ contents }),
       });
       const data = await res.json();
-      setMessages([...next, { role: "assistant", text: data.text }]);
+      setMessages([...next, { id: `a-${Date.now()}`, role: "assistant", text: data.text }]);
     } catch {
-      setMessages([...next, { role: "assistant", text: "Network error. Please try again." }]);
+      setMessages([...next, { id: `e-${Date.now()}`, role: "assistant", text: "Network error. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -96,8 +97,8 @@ export default function AiChat() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3" style={{ scrollbarWidth: "thin" }}>
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            {messages.map((m) => (
+              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
                   className="max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap"
                   style={

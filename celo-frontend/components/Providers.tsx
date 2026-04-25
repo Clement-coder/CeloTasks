@@ -7,8 +7,9 @@ import { privyConfig, wagmiConfig } from "@/lib/wagmi";
 import { TaskProvider, useTaskStore } from "@/lib/taskStore";
 import { useEffect, useState } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
-
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
 
 function WalletSync() {
   const { address } = useAccount();
@@ -20,8 +21,15 @@ function WalletSync() {
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  if (!privyAppId) throw new Error("NEXT_PUBLIC_PRIVY_APP_ID is not set. Add it to .env.local.");
+
+  if (!privyAppId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-400 text-sm p-8 text-center">
+        Missing <code className="mx-1 font-mono">NEXT_PUBLIC_PRIVY_APP_ID</code> — add it to <code className="mx-1 font-mono">.env.local</code> and restart.
+      </div>
+    );
+  }
+
   return (
     <PrivyProvider appId={privyAppId} config={privyConfig}>
       <QueryClientProvider client={queryClient}>
