@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import TaskCard from "@/components/TaskCard";
 import { TaskSkeleton } from "@/components/Skeletons";
 import { IconPlus, IconSearch, IconStar, IconCoin } from "@/components/Icons";
