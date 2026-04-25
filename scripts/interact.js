@@ -13,6 +13,9 @@
  *   - Creator wallet: ~0.30 cUSD + small CELO for gas
  *   - Worker wallet:  small CELO for gas (submitWork tx)
  *
+ * CONTRACT: 0xe289c5F77Bf51BB187C302364b779f4CAF572aEb (Celo Mainnet)
+ * NETWORK:  Celo Mainnet (chainId 42220)
+ *
  * INTERACTION BREAKDOWN (≥100):
  *   - 1  approve cUSD allowance
  *   - 20 full lifecycle tasks × 5 txs (create/assign/submit/approve/release) = 100 txs
