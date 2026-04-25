@@ -140,7 +140,7 @@ async function main() {
   console.log("=".repeat(60));
   console.log("CeloTasks — Live Mainnet Interactions");
   console.log("=".repeat(60));
-  console.log(`Creator : ${creator.address}`);
+  console.log(`Creator : https://celoscan.io/address/${creator.address}`);
   console.log(`Worker  : https://celoscan.io/address/${worker.address}`);
   console.log(`Contract: https://celoscan.io/address/${CELOTASKS}`);
   console.log("=".repeat(60) + "\n");
