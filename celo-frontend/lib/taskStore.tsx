@@ -564,7 +564,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (updates.difficulty !== undefined)      patch.difficulty       = updates.difficulty;
     const { error } = await db.from("tasks").update(patch).eq("id", id);
     if (error) throw error;
-  }, []);
+  }, [tasks, currentUser]);
 
   const applyToTask = useCallback(async (id: string, note: string): Promise<void> => {
     const db = getSupabase();
