@@ -5,3 +5,6 @@
 
 ## 1.0.0
 - Initial release: 100+ mainnet interactions on CeloTasks contract
+
+## 1.2.0
+- feat(navbar): single Connect Wallet button replaces Google + More split
