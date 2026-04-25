@@ -49,7 +49,7 @@
 
 CeloTasks is a decentralized micro-task marketplace on the Celo blockchain. Post a task with a cUSD reward, complete it, get paid — instantly, trustlessly, onchain.
 
-No middlemen. No waiting. No banks.
+No middlemen. No waiting. No banks. One click to connect.
 
 Built mobile-first for MiniPay users across Africa and beyond. Earn real money from your phone in minutes.
 
