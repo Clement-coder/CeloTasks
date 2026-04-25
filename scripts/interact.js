@@ -109,7 +109,7 @@ const workerW  = createWalletClient({ account: worker,  chain: celo, transport: 
 const nonces = {};
 async function sendTx(client, params) {
   const addr = client.account.address;
-  if (nonces[addr] === undefined) {
+  if (nonces[addr] == null) {
     nonces[addr] = await pub.getTransactionCount({ address: addr });
   }
   const nonce = nonces[addr]++;
