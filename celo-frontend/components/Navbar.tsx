@@ -188,7 +188,7 @@ export default function Navbar() {
               <button
                 onClick={login}
                 disabled={!ready}
-                aria-label="Connect your wallet" className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer disabled:opacity-50"
+                aria-label="Connect your wallet" title="Connect your wallet to get started" className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer disabled:opacity-50"
               >
                 Connect Wallet
               </button>
