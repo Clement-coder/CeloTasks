@@ -561,6 +561,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const db = getSupabase();
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
+    if (task.creator !== currentUser) throw new Error("Only the task creator can select a worker.");
     const now = new Date().toISOString();
     const { error } = await db.from("tasks").update({ status: "in_progress", acceptor_wallet: applicant, accepted_at: now }).eq("id", taskId);
     if (error) throw error;
