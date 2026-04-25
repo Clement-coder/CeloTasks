@@ -11,6 +11,10 @@ export default class ErrorBoundary extends Component<Props, State> {
     return { error };
   }
 
+  componentDidCatch(error: Error, info: { componentStack: string }) {
+    console.error("[ErrorBoundary]", error, info.componentStack);
+  }
+
   render() {
     if (this.state.error) {
       return this.props.fallback ?? (
@@ -18,10 +22,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="text-red-400 font-semibold text-lg">Something went wrong</p>
           <p className="text-slate-500 text-sm max-w-sm">{this.state.error.message}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => this.setState({ error: null })}
             className="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-xl"
           >
-            Reload
+            Try Again
           </button>
         </div>
       );
