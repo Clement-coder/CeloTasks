@@ -15,10 +15,11 @@ export default function ConfirmDialog({ open, title, message, confirmLabel, onCo
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+      role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <div className="glass-card rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4 fade-up">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-white font-semibold text-base">{title}</h3>
+          <h3 id="confirm-title" className="text-white font-semibold text-base">{title}</h3>
           <button onClick={onCancel} className="text-slate-400 hover:text-white transition-colors cursor-pointer">
             <IconX className="w-4 h-4" />
           </button>
