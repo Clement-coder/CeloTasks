@@ -202,6 +202,22 @@ async function main() {
     process.exit(1);
   }
 
+  // ── Fund worker with CELO for gas if balance is low ───────────────────────
+  // Worker needs to call submitWork (FULL_TASKS times). Each costs ~100k gas.
+  // At 100 gwei base fee: 100k * 100e9 * 20 tasks = 0.2 CELO worst case.
+  // Top up to 0.05 CELO minimum per task run.
+  const MIN_WORKER_CELO = parseUnits("0.05", 18);
+  const workerCelo = await pub.getBalance({ address: worker.address });
+  if (workerCelo < MIN_WORKER_CELO) {
+    const topUp = MIN_WORKER_CELO - workerCelo;
+    console.log(`\n⛽ Worker CELO low (${formatUnits(workerCelo, 18)}). Topping up ${formatUnits(topUp, 18)} CELO from creator...`);
+    const nonce = await getNonce(creator.address);
+    const hash = await creatorW.sendTransaction({ to: worker.address, value: topUp, nonce });
+    await sleep(TX_DELAY_MS);
+    await pub.waitForTransactionReceipt({ hash, timeout: 60_000 });
+    console.log(`[${++n}] WRITE CELO top-up → success | https://celoscan.io/tx/${hash}`);
+  }
+
   // ── Step 1: Approve cUSD ──────────────────────────────────────────────────
   // Check existing allowance — only approve if needed
   console.log("\n── Step 1: Approve cUSD ──");
