@@ -510,6 +510,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     if (!currentUser) throw new Error("Connect your wallet to cancel a task.");
+    if (task.creator !== currentUser) throw new Error("Only the task creator can cancel this task.");
 
     if (walletClient && publicClient && task.chainTaskId) {
       try {
