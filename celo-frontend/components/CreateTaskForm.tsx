@@ -149,8 +149,8 @@ export default function CreateTaskForm({ onSuccess }: Props) {
               <CustomSelect
                 value={form.currency}
                 onChange={(v) => set("currency", v as TaskCurrency)}
-                options={TASK_CURRENCIES.map((c) => ({ value: c, label: c }))}
-                className="w-28"
+                options={TASK_CURRENCIES.map((c) => ({ value: c, label: c === "CELO" ? "CELO (unsupported)" : c }))}
+                className="w-36"
               />
             </div>
             <p className="text-red-400 text-xs mt-1.5">{errors.reward}</p>
