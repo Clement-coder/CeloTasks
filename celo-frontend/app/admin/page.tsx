@@ -236,6 +236,7 @@ export default function AdminPage() {
   useEffect(() => { if (profile?.role === "admin") fetchUsers(); }, [profile, fetchUsers]);
 
   async function setRole(wallet: string, role: "user" | "admin") {
+    if (profile?.role !== "admin") { addToast("Unauthorized", "error"); return; }
     setActionLoading(wallet);
     const { error } = await getSupabase().from("profiles").update({ role }).eq("wallet", wallet);
     if (error) addToast("Failed to update role", "error");
@@ -244,6 +245,7 @@ export default function AdminPage() {
   }
 
   async function banUser(wallet: string) {
+    if (profile?.role !== "admin") { addToast("Unauthorized", "error"); return; }
     setActionLoading(wallet);
     const { error } = await getSupabase().from("profiles").update({ role: "user", banned: true }).eq("wallet", wallet);
     if (error) addToast("Failed to suspend account", "error");
@@ -252,6 +254,7 @@ export default function AdminPage() {
   }
 
   async function cancelTask(id: string) {
+    if (profile?.role !== "admin") { addToast("Unauthorized", "error"); return; }
     setActionLoading(id);
     const { error } = await getSupabase().from("tasks").update({ status: "cancelled" }).eq("id", id);
     if (error) addToast("Failed to cancel task", "error");
@@ -260,6 +263,7 @@ export default function AdminPage() {
   }
 
   async function deleteTask(id: string) {
+    if (profile?.role !== "admin") { addToast("Unauthorized", "error"); return; }
     setActionLoading(id);
     const { error } = await getSupabase().from("tasks").delete().eq("id", id);
     if (error) addToast("Failed to delete task", "error");
