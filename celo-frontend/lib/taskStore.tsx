@@ -298,7 +298,20 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     if (data.avatarUrl !== undefined)   patch.avatar_url   = data.avatarUrl;
     const { error } = await getSupabase().from("profiles").update(patch).eq("wallet", myAddress);
     if (error) throw error;
-    setProfile((prev) => prev ? { ...prev, ...data } : null);
+    // Re-fetch from DB to ensure local state is always in sync with persisted data
+    const { data: fresh } = await getSupabase().from("profiles").select("*").eq("wallet", myAddress).single();
+    if (fresh) {
+      const row = fresh as Record<string, unknown>;
+      setProfile({
+        wallet:         row.wallet as string,
+        displayName:    (row.display_name as string) ?? null,
+        email:          (row.email as string) ?? null,
+        avatarUrl:      (row.avatar_url as string) ?? null,
+        isVerified:     (row.is_verified as boolean) ?? false,
+        verificationId: (row.verification_id as string) ?? null,
+        role:           (row.role as "user" | "admin") ?? "user",
+      });
+    }
   }, [myAddress]);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
