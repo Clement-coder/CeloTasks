@@ -578,7 +578,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       { onConflict: "task_id,applicant" }
     );
     if (error) throw error;
-  }, [currentUser]);
+  }, [currentUser, tasks]);
 
   const selectApplicant = useCallback(async (taskId: string, applicant: string): Promise<void> => {
     const db = getSupabase();
