@@ -37,6 +37,7 @@ export default function WalletModal({ open, onClose }: Props) {
     setTxError(""); setTxHash("");
     if (!isAddress(toAddr)) { setTxError("Invalid address"); return; }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { setTxError("Invalid amount"); return; }
+    if (balance && Number(amount) > Number(balance)) { setTxError(`Insufficient balance (you have ${balance} cUSD)`); return; }
     setSending(true);
     try {
       const hash = await writeContractAsync({
