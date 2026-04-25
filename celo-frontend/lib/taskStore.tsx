@@ -569,6 +569,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const applyToTask = useCallback(async (id: string, note: string): Promise<void> => {
     const db = getSupabase();
     if (!currentUser) throw new Error("Connect your wallet before applying to a task.");
+    const task = tasks.find((t) => t.id === id);
+    if (task?.creator === currentUser) throw new Error("You cannot apply to your own task.");
+    if (task?.status !== "open") throw new Error("This task is no longer accepting applications.");
     await ensureProfile(currentUser);
     const { error } = await db.from("task_applications").upsert(
       { task_id: id, applicant: currentUser, note },
