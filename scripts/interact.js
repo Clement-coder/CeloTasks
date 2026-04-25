@@ -142,7 +142,7 @@ async function main() {
   console.log("=".repeat(60));
   console.log(`Creator : ${creator.address}`);
   console.log(`Worker  : ${worker.address}`);
-  console.log(`Contract: ${CELOTASKS}`);
+  console.log(`Contract: https://celoscan.io/address/${CELOTASKS}`);
   console.log("=".repeat(60) + "\n");
 
   // Pre-flight checks
