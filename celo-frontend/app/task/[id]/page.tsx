@@ -17,6 +17,7 @@ import {
   IconWallet,
   IconZap,
 } from "@/components/Icons";
+import { usePrivy } from "@privy-io/react-auth";
 
 const STATUS_STYLES = {
   draft: "text-slate-400 bg-slate-400/10 border-slate-400/20",
@@ -41,6 +42,7 @@ const STATUS_LABELS = {
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { getTask, currentUser, loading: storeLoading, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
+  const { login, authenticated } = usePrivy();
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -261,7 +263,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             <p className="text-teal-400 text-xs uppercase tracking-[0.2em] font-semibold">Workflow Actions</p>
 
             {task.status === "open" && !isCreator && (
-              hasApplied ? (
+              !authenticated ? (
+                <div className="rounded-2xl p-4 border border-teal-400/15" style={{ background: "rgba(20,184,166,0.08)" }}>
+                  <p className="text-teal-300 text-sm font-semibold mb-2">Connect wallet to apply</p>
+                  <button onClick={login} className="gradient-btn text-white text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
+                    <IconWallet className="w-4 h-4" /> Connect Wallet
+                  </button>
+                </div>
+              ) : hasApplied ? (
                 <div className="rounded-2xl p-4 border border-teal-400/15" style={{ background: "rgba(20,184,166,0.08)" }}>
                   <p className="text-teal-300 text-sm font-semibold">Application submitted ✓</p>
                   <p className="text-slate-400 text-xs mt-1">Waiting for the creator to select a worker.</p>
