@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 import TaskCard from "@/components/TaskCard";
 import { IconCheck, IconCoin, IconPlus, IconSearch, IconX, IconZap } from "@/components/Icons";
 import { useTaskStore, type TaskStatus } from "@/lib/taskStore";
-import { type ToastType } from "@/hooks/useToast";
-
-interface Props {
-  onToast: (msg: string, type?: ToastType) => void;
-}
 
 const STATUS_FILTERS: { label: string; value: TaskStatus | "all" }[] = [
   { label: "All", value: "all" },
@@ -21,7 +16,7 @@ const STATUS_FILTERS: { label: string; value: TaskStatus | "all" }[] = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
-export default function MyTasks(_: { onToast?: (msg: string, type?: ToastType) => void }) {
+export default function MyTasks() {
   const router = useRouter();
   const { myCreatedTasks, myAcceptedTasks, reviewQueue, paymentQueue } = useTaskStore();
   const [filter, setFilter] = useState<TaskStatus | "all">("all");

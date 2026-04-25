@@ -100,6 +100,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       .then(({ data }: { data: { tx_hash: string } | null }) => {
         if (data?.tx_hash) setPaymentTxHash(data.tx_hash);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task?.id, task?.status]);
 
   if (storeLoading) {
