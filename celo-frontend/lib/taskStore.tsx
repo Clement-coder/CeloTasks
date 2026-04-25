@@ -430,6 +430,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     if (!currentUser) throw new Error("Connect your wallet to request a revision.");
+    if (task.creator !== currentUser) throw new Error("Only the task creator can request a revision.");
     if (task.revisionCount >= 3) throw new Error("Maximum of 3 revision requests reached. Please approve or cancel.");
     const { error } = await db.from("tasks").update({ status: "in_progress", creator_feedback: feedback, revision_count: task.revisionCount + 1 }).eq("id", id);
     if (error) throw error;
@@ -452,6 +453,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     if (!currentUser) throw new Error("Connect your wallet to approve a task.");
+    if (task.creator !== currentUser) throw new Error("Only the task creator can approve a submission.");
     const { error } = await db.from("tasks").update({ status: "approved", approved_at: new Date().toISOString(), creator_feedback: null }).eq("id", id);
     if (error) throw error;
 
