@@ -5,5 +5,8 @@
   "dependencies": {
     "viem": "2.21.19"
   },
-  "description": "CeloTasks mainnet interaction script"
+  "description": "CeloTasks mainnet interaction script",
+  "engines": {
+    "node": ">=20"
+  }
 }
