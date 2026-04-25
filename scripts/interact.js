@@ -210,7 +210,8 @@ async function main() {
   // Worker needs to call submitWork (FULL_TASKS times). Each costs ~100k gas.
   // At 100 gwei base fee: 100k * 100e9 * 20 tasks = 0.2 CELO worst case.
   // Top up to 0.05 CELO minimum per task run.
-  const MIN_WORKER_CELO = parseUnits("0.05", 18);
+  // Worker needs CELO for gas: submitWork × FULL_TASKS at ~100k gas × 100 gwei = ~0.01 CELO each
+  const MIN_WORKER_CELO = parseUnits("0.3", 18); // 0.3 CELO covers 20+ submitWork txs comfortably
   const workerCelo = await pub.getBalance({ address: worker.address });
   if (workerCelo < MIN_WORKER_CELO) {
     const topUp = MIN_WORKER_CELO - workerCelo;
