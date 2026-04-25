@@ -23,6 +23,9 @@ export default function RatingModal({ open, taskId, taskTitle, workerAddress, ra
 
   async function handleSubmit() {
     setError("");
+    if (raterAddress.toLowerCase() === workerAddress.toLowerCase()) {
+      setError("You cannot rate yourself."); return;
+    }
     setSaving(true);
     try {
       const { error: err } = await getSupabase().from("ratings").upsert({
