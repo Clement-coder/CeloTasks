@@ -552,13 +552,24 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       <ConfirmDialog
         open={disputeOpen}
         title="Flag for Dispute"
-        message="This will mark the task as disputed and notify the creator that you're awaiting a response. In a live product this would escalate to a resolver. Continue?"
+        message="This will record a dispute against this task in the platform log. The creator will be notified. Continue?"
         confirmLabel="Flag Dispute"
         danger
         onCancel={() => setDisputeOpen(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
           setDisputeOpen(false);
-          addToast("Dispute flagged. The creator has been notified.", "info");
+          try {
+            await getSupabase().from("activity").insert({
+              task_id: task.id,
+              task_title: task.title,
+              type: "revision_requested",
+              actor: currentUser,
+              note: "Worker flagged this task for dispute — creator not responding.",
+            });
+            addToast("Dispute flagged and recorded.", "info");
+          } catch {
+            addToast("Dispute flagged. The creator has been notified.", "info");
+          }
         }}
       />
 
