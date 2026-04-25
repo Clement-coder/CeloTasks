@@ -384,6 +384,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
     if (!myAddress) throw new Error("Connect your wallet before accepting a task.");
+    if (task.status !== "open") throw new Error("This task is no longer open for acceptance.");
     if (task.creator === currentUser) throw new Error("You cannot accept your own task.");
     await ensureProfile(currentUser);
     const now = new Date().toISOString();
