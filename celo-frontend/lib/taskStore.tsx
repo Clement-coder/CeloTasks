@@ -528,6 +528,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const editTask = useCallback(async (id: string, updates: Partial<Pick<Task, "title" | "description" | "reward" | "durationHours" | "submissionGuide" | "tags" | "deliverables" | "category" | "difficulty">>): Promise<void> => {
     const db = getSupabase();
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    if (task.creator !== currentUser) throw new Error("Only the task creator can edit this task.");
     const patch: Record<string, unknown> = {};
     if (updates.title !== undefined)           patch.title            = updates.title;
     if (updates.description !== undefined)     patch.description      = updates.description;
