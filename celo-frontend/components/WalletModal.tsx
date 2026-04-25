@@ -7,6 +7,7 @@ import { celo } from "wagmi/chains";
 import { IconX, IconArrowDown, IconArrowUp, IconCreditCard, IconWallet } from "@/components/Icons";
 import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import { CUSD_ADDRESS } from "@/lib/abi";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const ERC20_TRANSFER_ABI = [
   { name: "transfer", type: "function", stateMutability: "nonpayable",
@@ -28,6 +29,7 @@ export default function WalletModal({ open, onClose }: Props) {
   const [sending, setSending] = useState(false);
   const [txError, setTxError] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [confirmSend, setConfirmSend] = useState(false);
 
   const { writeContractAsync } = useWriteContract();
 
@@ -38,6 +40,11 @@ export default function WalletModal({ open, onClose }: Props) {
     if (!isAddress(toAddr)) { setTxError("Invalid address"); return; }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { setTxError("Invalid amount"); return; }
     if (balance && Number(amount) > Number(balance)) { setTxError(`Insufficient balance (you have ${balance} cUSD)`); return; }
+    setConfirmSend(true);
+  }
+
+  async function executeSend() {
+    setConfirmSend(false);
     setSending(true);
     try {
       const hash = await writeContractAsync({
@@ -190,6 +197,16 @@ export default function WalletModal({ open, onClose }: Props) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmSend}
+        title="Confirm Send"
+        message={`Send ${amount} cUSD to ${toAddr.slice(0, 8)}…${toAddr.slice(-6)}? This cannot be undone.`}
+        confirmLabel="Send"
+        danger
+        onCancel={() => setConfirmSend(false)}
+        onConfirm={executeSend}
+      />
     </div>
   );
 }
