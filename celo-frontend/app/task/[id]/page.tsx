@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/useToast";
 import { useTaskStore } from "@/lib/taskStore";
 import RatingModal from "@/components/RatingModal";
 import { getSupabase } from "@/utils/supabase/client";
+import { useAccount } from "wagmi";
+import { useCUSDBalance } from "@/hooks/useCUSDBalance";
 import {
   IconArrowRight,
   IconCheck,
@@ -43,6 +45,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const { getTask, currentUser, loading: storeLoading, acceptTask, approveTask, releasePayment, requestRevision, submitTask, cancelTask, editTask, applyToTask, selectApplicant, claimAfterTimeout } = useTaskStore();
   const { login, authenticated } = usePrivy();
+  const { address } = useAccount();
+  const { balance: cusdBalance } = useCUSDBalance(address);
   const { toasts, addToast, removeToast } = useToast();
   const task = getTask(id);
   const [loading, setLoading] = useState(false);
@@ -497,6 +501,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 <div className="flex gap-2">
                   <button onClick={async () => {
+                    if (cusdBalance && Number(editReward) > Number(cusdBalance)) {
+                      addToast(`Insufficient cUSD balance (you have ${cusdBalance} cUSD)`, "error");
+                      return;
+                    }
                     await editTask(task.id, {
                       title: editTitle, description: editDesc, reward: editReward, durationHours: editDurationHours,
                       deliverables: editDeliverables.split("\n").map((s) => s.trim()).filter(Boolean),
