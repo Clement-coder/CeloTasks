@@ -8,5 +8,8 @@
   "description": "CeloTasks mainnet interaction script",
   "engines": {
     "node": ">=20"
+  },
+  "scripts": {
+    "start": "node interact.js"
   }
 }
