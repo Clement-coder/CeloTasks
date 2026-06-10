@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAccount } from "wagmi";
-import { shortenAddress, isMiniPay } from "@/lib/wagmi";
+import { shortenAddress } from "@/lib/wagmi";
+import { useMiniPay } from "@/hooks/useMiniPay";
 import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
@@ -18,7 +19,7 @@ export default function Navbar() {
   const { login, logout, ready, authenticated } = usePrivy();
   const { address } = useAccount();
   const { balance: cusdBalance } = useCUSDBalance(address);
-  const [miniPay, setMiniPay] = useState(false);
+  const { isMiniPay: miniPay } = useMiniPay();
   const [showMiniPayBanner, setShowMiniPayBanner] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const prevAuth = useRef<boolean | null>(null);
@@ -62,14 +63,20 @@ export default function Navbar() {
 
   function handleLogout() { setConfirmLogout(false); logout(); }
 
-  // MiniPay detection + banner for non-MiniPay mobile users
+  // In MiniPay, request accounts directly from the injected provider
+  async function connectMiniPay() {
+    try {
+      const eth = (window as unknown as { ethereum?: { request: (a: { method: string }) => Promise<string[]> } }).ethereum;
+      if (eth) await eth.request({ method: "eth_requestAccounts" });
+    } catch {/* user rejected */}
+  }
+
+  // Show "Open in MiniPay" banner for non-MiniPay mobile users
   useEffect(() => {
-    const mp = isMiniPay();
-    setMiniPay(mp);
-    if (!mp && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    if (!miniPay && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
       if (!sessionStorage.getItem("minipay_banner_dismissed")) setShowMiniPayBanner(true);
     }
-  }, []);
+  }, [miniPay]);
 
   return (
     <>
@@ -210,11 +217,11 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={login}
-                disabled={!ready}
+                onClick={miniPay ? connectMiniPay : login}
+                disabled={!ready && !miniPay}
                 aria-label="Connect your wallet" title="Connect your wallet to get started" className="gradient-btn text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer disabled:opacity-50"
               >
-                Connect Wallet
+                {miniPay ? "Connect MiniPay" : "Connect Wallet"}
               </button>
             )}
           </div>
