@@ -171,7 +171,7 @@ export default function DashboardPage() {
 
       {tab === "browse"
         ? <BrowseTasks onToast={addToast} />
-        : <MyTasks onToast={addToast} />
+        : <MyTasks />
       }
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
